@@ -1,6 +1,6 @@
 const { readdirSync } = require('fs');
 
-VIDEOS_PATH = '/mnt/Shared/Programming/Python/CamerAI/Images'
+VIDEOS_PATH = '../Images'
 
 VALID_PLACES = readdirSync(VIDEOS_PATH, { withFileTypes: true }).filter(dirent => dirent.isDirectory()).map(dirent => dirent.name)
 
