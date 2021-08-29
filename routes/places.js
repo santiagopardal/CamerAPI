@@ -2,6 +2,7 @@ const router = require('express').Router()
 const { readdirSync, statSync } = require('fs');
 const { VALID_PLACES } = require('../constants')
 const path = require('path')
+const moment = require('moment')
 require('../constants')
 
 function validatePlace(place) {
@@ -11,6 +12,18 @@ function validatePlace(place) {
 
         throw error
     }
+}
+
+function transformDate(date) {
+    var date = moment(date, 'DD-MM-YYYY', true)
+
+    if (!date.isValid()) {
+        const error = Error('Date is invalid')
+        error.status = 400
+
+        throw error
+    }
+    return date.format('YYYY-MM-DD')
 }
 
 function filenameToObject(pth, file_name) {
@@ -34,6 +47,27 @@ router.get('/:place/videos', (request, response, next) => {
         videos = videos.map(dirent => filenameToObject(pth, dirent.name))
         
         response.status(200).json(videos)
+    } catch (e) {
+        next(e)
+    }
+})
+
+router.get('/:place/videos/:date', (request, response, next) => {
+    try {
+        validatePlace(request.params.place)
+        const date = transformDate(request.params.date)
+        
+        const pth = path.join(VIDEOS_PATH, request.params.place, `${date}.mp4`)
+
+        if (!fs.existsSync(pth)) {
+            console.log(date)
+            const error = Error("Date not found")
+            error.status = 404
+
+            throw error
+        }
+
+        response.download(pth)
     } catch (e) {
         next(e)
     }
