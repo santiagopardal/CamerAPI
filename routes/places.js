@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { readdirSync, statSync } = require('fs');
+const { readdirSync, statSync, existsSync } = require('fs');
 const { VALID_PLACES } = require('../constants')
 const path = require('path')
 const moment = require('moment')
@@ -59,7 +59,7 @@ router.get('/:place/videos/:date', (request, response, next) => {
         
         const pth = path.join(VIDEOS_PATH, request.params.place, `${date}.mp4`)
 
-        if (!fs.existsSync(pth)) {
+        if (!existsSync(pth)) {
             console.log(date)
             const error = Error("Date not found")
             error.status = 404
