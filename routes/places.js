@@ -1,12 +1,12 @@
 const router = require('express').Router()
-const { readdirSync, statSync, existsSync } = require('fs');
+const { readdirSync, statSync, existsSync, createReadStream } = require('fs');
 const { VALID_PLACES } = require('../constants')
 const path = require('path')
 const moment = require('moment')
 require('../constants')
 
 function validatePlace(place) {
-    if (!VALID_PLACES.includes(place)) {
+    if (!VALID_PLACES().includes(place)) {
         const error = Error('Invalid place')
         error.status = 400
 
@@ -36,6 +36,23 @@ function filenameToObject(pth, file_name) {
     }
 }
 
+function validatePlaceAndDate(place, request_date) {
+    validatePlace(place)
+
+    const date = transformDate(request_date)
+
+    const pth = path.join(VIDEOS_PATH, place, `${date}.mp4`)
+
+    if (!existsSync(pth)) {
+        const error = Error(`There are no videos from ${request_date}`)
+        error.status = 404
+
+        throw error
+    }
+
+    return pth
+}
+
 router.get('/:place/videos', (request, response, next) => {
     try {
         validatePlace(request.params.place)
@@ -52,12 +69,48 @@ router.get('/:place/videos', (request, response, next) => {
     }
 })
 
-router.get('/:place/videos/:date', (request, response, next) => {
+router.get('/:place/stream/date/:date', (request, response, next) => {
     try {
-        validatePlace(request.params.place)
-        const date = transformDate(request.params.date)
+        pth = validatePlaceAndDate(request.params.place, request.params.date)
+
+        const stat = statSync(pth)
+        const fileSize = stat.size
+        const range = request.headers.range
         
-        const pth = path.join(VIDEOS_PATH, request.params.place, `${date}.mp4`)
+        if (range) {
+            const parts = range.replace(/bytes=/, "").split("-")
+            const start = parseInt(parts[0], 10)
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize-1
+            const chunkSize = (end-start)+1
+            
+            const file = createReadStream(pth, {start, end})
+            
+            const head = {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunkSize,
+                'Content-Type': 'video/mp4'
+            }
+
+            response.writeHead(206, head);
+            file.pipe(res);
+        } else {
+            const head = {
+                'Content-Length': fileSize,
+                'Content-Type': 'video/mp4',
+            }
+
+            response.writeHead(200, head)
+            createReadStream(pth).pipe(res)
+        }
+    } catch (e) {
+        next(e)
+    }
+})
+
+router.get('/:place/download/date/:date', (request, response, next) => {
+    try {
+        pth = validatePlaceAndDate(request.params.place, request.params.date)
 
         if (!existsSync(pth)) {
             console.log(date)
@@ -75,12 +128,7 @@ router.get('/:place/videos/:date', (request, response, next) => {
 
 router.get('/', (_, response, next) => {
     try {
-        if (VALID_PLACES.length > 0)
-            response.status(200).json(VALID_PLACES)
-        else
-            response.status(404).json({
-                error: 'There are no places :('
-            })
+        response.status(200).json(VALID_PLACES())
     } catch (e) {
         next(e)
     }
