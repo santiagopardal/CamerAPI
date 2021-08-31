@@ -53,7 +53,7 @@ function validatePlaceAndDate(place, request_date) {
     return pth
 }
 
-router.get('/:place/videos', (request, response, next) => {
+router.get('/:place/videos', async (request, response, next) => {
     try {
         validatePlace(request.params.place)
 
@@ -69,7 +69,7 @@ router.get('/:place/videos', (request, response, next) => {
     }
 })
 
-router.get('/:place/stream/date/:date', (request, response, next) => {
+router.get('/:place/stream/date/:date', async (request, response, next) => {
     try {
         pth = validatePlaceAndDate(request.params.place, request.params.date)
 
@@ -108,7 +108,7 @@ router.get('/:place/stream/date/:date', (request, response, next) => {
     }
 })
 
-router.get('/:place/download/date/:date', (request, response, next) => {
+router.get('/:place/download/date/:date', async (request, response, next) => {
     try {
         pth = validatePlaceAndDate(request.params.place, request.params.date)
 
@@ -126,7 +126,7 @@ router.get('/:place/download/date/:date', (request, response, next) => {
     }
 })
 
-router.get('/', (_, response, next) => {
+router.get('/', async (_, response, next) => {
     try {
         response.status(200).json(VALID_PLACES())
     } catch (e) {
