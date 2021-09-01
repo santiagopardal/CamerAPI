@@ -1,3 +1,1 @@
-npm install express
-npm install morgan
-npm install cors
+docker build -f ./docker/Dockerfile . -t camerapi
