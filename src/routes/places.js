@@ -93,7 +93,7 @@ router.get('/:place/stream/date/:date', async (request, response, next) => {
             }
 
             response.writeHead(206, head);
-            file.pipe(res);
+            file.pipe(response);
         } else {
             const head = {
                 'Content-Length': fileSize,
@@ -101,7 +101,7 @@ router.get('/:place/stream/date/:date', async (request, response, next) => {
             }
 
             response.writeHead(200, head)
-            createReadStream(pth).pipe(res)
+            createReadStream(pth).pipe(response)
         }
     } catch (e) {
         next(e)
