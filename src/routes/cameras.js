@@ -9,7 +9,7 @@ readFile('cameras.json', (err, data) => {
 });
 
 function serializeCameras() {
-    const toStore = JSON.stringify(global.CAMERAS)
+    const toStore = JSON.stringify(global.CAMERAS, null, 2)
 
     writeFile("./cameras.json", toStore, (err) => console.log(err))
 }
