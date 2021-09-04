@@ -2,12 +2,12 @@ const router = require('express').Router()
 const { readdirSync, statSync, existsSync, createReadStream } = require('fs');
 const path = require('path')
 const moment = require('moment')
-const { VIDEOS_PATH, VALID_PLACES } = require('../constants');
+const { VIDEOS_PATH } = require('../constants');
 
-function validatePlace(place) {
-    if (!VALID_PLACES().includes(place)) {
-        const error = Error('Invalid place')
-        error.status = 400
+function validateCamera(cameraID) {
+    if (!cameraID in global.CAMERAS) {
+        const error = Error('That camera does not exist')
+        error.status = 404
 
         throw error
     }
@@ -35,12 +35,12 @@ function filenameToObject(pth, file_name) {
     }
 }
 
-function validatePlaceAndDate(place, request_date) {
-    validatePlace(place)
+function validateCameraAndDate(cameraID, request_date) {
+    validateCamera(cameraID)
 
     const date = transformDate(request_date)
 
-    const pth = path.join(VIDEOS_PATH, place, `${date}.mp4`)
+    const pth = path.join(VIDEOS_PATH, global.CAMERAS[cameraID].name, `${date}.mp4`)
 
     if (!existsSync(pth)) {
         const error = Error(`There are no videos from ${request_date}`)
@@ -54,9 +54,9 @@ function validatePlaceAndDate(place, request_date) {
 
 router.get('/:camera/', async (request, response, next) => {
     try {
-        validatePlace(request.params.camera)
+        validateCamera(request.params.camera)
 
-        const pth = path.join(VIDEOS_PATH, request.params.camera)
+        const pth = path.join(VIDEOS_PATH, global.CAMERAS[request.params.camera].name)
 
         var videos = readdirSync(pth, { withFileTypes: true }).filter(dirent => dirent.name.endsWith('.mp4'))
         
@@ -68,9 +68,9 @@ router.get('/:camera/', async (request, response, next) => {
     }
 })
 
-router.get('/:camera/stream/date/:date', async (request, response, next) => {
+router.get('/:camera/stream/:date', async (request, response, next) => {
     try {
-        pth = validatePlaceAndDate(request.params.camera, request.params.date)
+        const pth = validateCameraAndDate(request.params.camera, request.params.date)
 
         const stat = statSync(pth)
         const fileSize = stat.size
@@ -107,9 +107,9 @@ router.get('/:camera/stream/date/:date', async (request, response, next) => {
     }
 })
 
-router.get('/:camera/download/date/:date', async (request, response, next) => {
+router.get('/:camera/download/:date', async (request, response, next) => {
     try {
-        pth = validatePlaceAndDate(request.params.camera, request.params.date)
+        const pth = validateCameraAndDate(request.params.camera, request.params.date)
 
         if (!existsSync(pth)) {
             console.log(date)
@@ -120,14 +120,6 @@ router.get('/:camera/download/date/:date', async (request, response, next) => {
         }
 
         response.download(pth)
-    } catch (e) {
-        next(e)
-    }
-})
-
-router.get('/', async (_, response, next) => {
-    try {
-        response.status(200).json(CAMERAS)
     } catch (e) {
         next(e)
     }
