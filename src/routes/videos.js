@@ -5,7 +5,7 @@ const moment = require('moment')
 const { VIDEOS_PATH } = require('../constants');
 
 function validateCamera(cameraID) {
-    if (!cameraID in global.CAMERAS) {
+    if (!(cameraID in global.CAMERAS)) {
         const error = Error('That camera does not exist')
         error.status = 404
 
