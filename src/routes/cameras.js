@@ -72,6 +72,8 @@ router.put('/:id', async (request, response, next) => {
             CAMERAS[request.params.id][key] = request.query[key]
         })
 
+        serializeCameras()
+
         response.status(200).send(CAMERAS[request.params.id])
     } catch (error) {
         next(error)
