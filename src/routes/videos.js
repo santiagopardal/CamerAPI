@@ -111,14 +111,6 @@ router.get('/:camera/download/:date', async (request, response, next) => {
     try {
         const pth = validateCameraAndDate(request.params.camera, request.params.date)
 
-        if (!existsSync(pth)) {
-            console.log(date)
-            const error = Error("Date not found")
-            error.status = 404
-
-            throw error
-        }
-
         response.download(pth)
     } catch (e) {
         next(e)
