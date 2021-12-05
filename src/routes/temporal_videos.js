@@ -1,22 +1,22 @@
 const router = require('express').Router()
-const { statSync } = require('fs')
-const db = require("../database/video")
+const db = require("../database/temporal_video")
 const { validateCameraID } = require("../routes/cameras")
-
-function videoToObject(video) {
-    let file_s = statSync(video.path).size/(1024*1024*1024)
-    file_s = String(file_s).substr(0, 4)
-
-    return { 
-        day: video.date,
-        file_size: `${file_s} GB`
-    }
-}
 
 router.get('/:camera/', async (request, response, next) => {
     try {
+        await validateCameraID(request.params.camera)
         let videos = await db.getAllVideos(request.params.camera)
-        videos = videos.map(video => videoToObject(video))
+        response.status(200).json(videos)
+    } catch (e) {
+        next(e)
+    }
+})
+
+router.get('/:camera/:date', async (request, response, next) => {
+    try {
+        await validateCameraID(request.params.camera)
+        let videos = await db.getAllVideosInDate(request.params.camera, request.params.date)
+        videos = videos.map(video => video.path)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
@@ -38,18 +38,11 @@ router.post('/:camera/:date/', async (request, response, next) => {
     }
 })
 
-router.get('/:camera/download/:date', async (request, response, next) => {
+router.delete('/:camera/:date', async (request, response, next) => {
     try {
-        const pth = await db.getVideoPath(request.params.camera, request.params.date)
-
-        if (!pth) {
-            const error = Error(`There are no videos from ${request.params.date}`)
-            error.status = 404
-
-            next(error)
-        }
-        
-        response.sendFile(pth)
+        await validateCameraID(request.params.camera)
+        await db.deleteAllVideosInDate(request.params.camera, request.params.date)
+        response.status(200).json({ ok: "OK" })
     } catch (e) {
         next(e)
     }
