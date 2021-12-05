@@ -1,2 +1,6 @@
+sudo apt-get install sqlite3
+
+sqlite3 camerai.db < ./database/camerapi.sql
+
 echo CAMERAI_IMAGES="$(cd .. && pwd)"/Images > ./docker/.env
 docker build -f ./docker/Dockerfile . -t camerapi

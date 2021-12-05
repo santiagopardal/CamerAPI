@@ -6,8 +6,9 @@ const app = express()
 app.set("json spaces", 2)
 
 // Routes
-const cameras = require('./routes/cameras')
+const cameras = require('./routes/cameras').router
 const videos = require('./routes/videos')
+const temporalVideos = require('./routes/temporal_videos')
 
 // Middlewares
 app.use(morgan('dev'))
@@ -17,6 +18,7 @@ app.use(cors())
 
 app.use('/api/cameras/', cameras)
 app.use('/api/videos/', videos)
+app.use('/api/temporal_videos/', temporalVideos)
 
 app.use((req, res, next) => {
     const err = new Error("Url not found");
