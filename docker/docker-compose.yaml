@@ -7,3 +7,4 @@ services:
       - 8080:8080
     volumes:
       - ${CAMERAI_IMAGES}:/Images
+      - ${DATABASE}:/app/camerai.db
