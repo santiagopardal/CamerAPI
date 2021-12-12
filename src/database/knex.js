@@ -1,9 +1,9 @@
-const knex = require("knex")
+const knex = require('knex')
 
 const knexConnection = knex({
-    client: "sqlite3",
+    client: 'sqlite3',
     connection: {
-        filename: "camerai.db"
+        filename: 'camerai.db'
     }
 })
 

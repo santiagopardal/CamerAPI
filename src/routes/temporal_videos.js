@@ -1,6 +1,18 @@
 const router = require('express').Router()
-const db = require("../database/temporal_video")
-const { validateCameraID } = require("../routes/cameras")
+const db = require('../database/temporal_video')
+const { validateCameraID } = require('../routes/cameras')
+const { SQLITE_CONSTRAINT } = require('../database/database_error')
+
+function handleError(error) {
+    if (error.code === SQLITE_CONSTRAINT) {
+        error = {
+            message: 'There is another video with that path',
+            status: 409
+        }
+    }
+
+    return error
+}
 
 router.get('/:camera/', async (request, response, next) => {
     try {
@@ -34,7 +46,8 @@ router.post('/:camera/:date/', async (request, response, next) => {
         await db.logVideo(video)
         response.status(200).json(video)
     } catch (e) {
-        next(e)
+        let error = handleError(e)
+        next(error)
     }
 })
 
@@ -42,7 +55,7 @@ router.delete('/:camera/:date', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
         await db.deleteAllVideosInDate(request.params.camera, request.params.date)
-        response.status(200).json({ ok: "OK" })
+        response.status(200).json({ ok: 'OK' })
     } catch (e) {
         next(e)
     }

@@ -1,0 +1,5 @@
+const SQLITE_CONSTRAINT = 'SQLITE_CONSTRAINT'
+
+module.exports = {
+    SQLITE_CONSTRAINT
+}
