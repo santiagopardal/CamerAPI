@@ -1,7 +1,12 @@
 const router = require('express').Router()
 const { statSync } = require('fs')
-const db = require("../database/video")
-const { validateCameraID } = require("../routes/cameras")
+const db = require('../database/video')
+const { validateCameraID } = require('../routes/cameras')
+const { handleError } = require('../database/database_error')
+
+const ERROR_MESSAGES = {
+    SQLITE_CONSTRAINT: 'There is another video with that path'
+}
 
 function videoToObject(video) {
     let file_s = statSync(video.path).size/(1024*1024*1024)
@@ -32,9 +37,10 @@ router.post('/:camera/:date/', async (request, response, next) => {
             camera: request.params.camera
         }
         await db.logVideo(video)
-        response.status(200).json(video)
+        response.status(201).json(video)
     } catch (e) {
-        next(e)
+        let error = handleError(e, ERROR_MESSAGES)
+        next(error)
     }
 })
 

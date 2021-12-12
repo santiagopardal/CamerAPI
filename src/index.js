@@ -3,14 +3,12 @@ const morgan = require('morgan')
 const cors = require('cors')
 
 const app = express()
-app.set("json spaces", 2)
+app.set('json spaces', 2)
 
-// Routes
 const cameras = require('./routes/cameras').router
 const videos = require('./routes/videos')
 const temporalVideos = require('./routes/temporal_videos')
 
-// Middlewares
 app.use(morgan('dev'))
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())
@@ -21,13 +19,13 @@ app.use('/api/videos/', videos)
 app.use('/api/temporal_videos/', temporalVideos)
 
 app.use((req, res, next) => {
-    const err = new Error("Url not found");
+    const err = new Error('Url not found');
     err.status = 404;
 
     next(err);
 });
 
-app.use((error, req, res, next) => {
+app.use((error, req, res, _) => {
     res.status(error.status || 500).json({ error: error.message });
 })
 
