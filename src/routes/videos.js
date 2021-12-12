@@ -37,7 +37,7 @@ router.post('/:camera/:date/', async (request, response, next) => {
             camera: request.params.camera
         }
         await db.logVideo(video)
-        response.status(200).json(video)
+        response.status(201).json(video)
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
         next(error)
