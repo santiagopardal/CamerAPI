@@ -1,6 +1,10 @@
 const router = require('express').Router()
 const db = require('../database/camera')
-const { SQLITE_CONSTRAINT } = require('../database/database_error')
+const { handleError } = require('../database/database_error')
+
+const ERROR_MESSAGES = {
+    SQLITE_CONSTRAINT: 'There is another camera with that name'
+}
 
 async function validateCameraID(id) {
     const cam = await db.getCamera(id)
@@ -15,23 +19,12 @@ async function validateCameraID(id) {
     return cam
 }
 
-function handleError(error) {
-    if (error.code === SQLITE_CONSTRAINT) {
-        error = {
-            message: 'There is another camera with that name',
-            status: 409
-        }
-    }
-
-    return error
-}
-
 router.post('/', async (request, response, next) => {
     try {
         await db.createCamera(request.query);
         response.status(200).json(request.query)
     } catch (error) {
-        error = handleError(error)
+        error = handleError(error, ERROR_MESSAGES)
         next(error)
     }
 })
@@ -43,7 +36,7 @@ router.patch('/:id', async (request, response, next) => {
         const cameraUpdated = await db.getCamera(request.params.id)
         response.status(200).json(cameraUpdated);
     } catch (error) {
-        error = handleError(error)
+        error = handleError(error, ERROR_MESSAGES)
         next(error)
     }
 })

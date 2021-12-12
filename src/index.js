@@ -5,12 +5,10 @@ const cors = require('cors')
 const app = express()
 app.set('json spaces', 2)
 
-// Routes
 const cameras = require('./routes/cameras').router
 const videos = require('./routes/videos')
 const temporalVideos = require('./routes/temporal_videos')
 
-// Middlewares
 app.use(morgan('dev'))
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())
