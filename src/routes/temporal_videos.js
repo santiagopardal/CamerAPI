@@ -31,9 +31,9 @@ router.get('/:camera/:date', async (request, response, next) => {
 
 router.put('/:camera/:date/', async (request, response, next) => {
     try {
-        await saveFilePart(request.body.chunk, request.body.filename, request.params.camera, request.params.date)
+        const newPath = await saveFilePart(request.body.chunk, request.body.filename, request.params.camera, request.params.date)
         if (parseInt(request.body.part) === parseInt(request.body.parts) - 1) {
-            await db.markVideoAsLocallyStored(request.query.video_id)
+            await db.markVideoAsLocallyStored(request.query.old_path, newPath)
         }
         response.status(206).send()
     } catch (e) {
@@ -50,8 +50,7 @@ router.post('/:camera/:date/', async (request, response, next) => {
             date: request.params.date,
             camera: request.params.camera
         }
-        const id = await db.logVideo(video)
-        video.id = id[0]
+        await db.logVideo(video)
         response.status(201).json(video)
     } catch (e) {
         console.log(e)
