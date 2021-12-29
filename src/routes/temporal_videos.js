@@ -45,7 +45,7 @@ router.put('/:camera/:date/', async (request, response, next) => {
     try {
         await saveFilePart(request.body.chunk, request.body.filename, request.params.camera, request.params.date)
         if (parseInt(request.body.part) === parseInt(request.body.parts) - 1) {
-            request.query.path = videoPath(request.body.filename, request.params.camera, request.params.date)
+            request.query.path = await videoPath(request.body.filename, request.params.camera, request.params.date)
             await logNewTemporalVideo(request, true)
         }
         response.status(206).send()
