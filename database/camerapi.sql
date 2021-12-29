@@ -17,6 +17,7 @@ CREATE TABLE temporal_video (
 	path TEXT UNIQUE NOT NULL,
 	date TEXT NOT NULL,
 	camera INTEGER,
+	locally_stored INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(path),
 	FOREIGN KEY(camera) REFERENCES camera(id) ON DELETE CASCADE
 );
@@ -25,6 +26,7 @@ CREATE TABLE video (
 	path TEXT UNIQUE NOT NULL,
 	date TEXT NOT NULL,
 	camera INTEGER,
+	locally_stored INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(path),
 	FOREIGN KEY(camera) REFERENCES camera(id) ON DELETE CASCADE
 );

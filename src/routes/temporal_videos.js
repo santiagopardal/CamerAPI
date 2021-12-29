@@ -8,6 +8,18 @@ const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
 }
 
+async function logNewTemporalVideo(request, locallyStored) {
+    await validateCameraID(request.params.camera)
+    const video = {
+        path: request.query.path,
+        date: request.params.date,
+        camera: request.params.camera,
+        locally_stored: locallyStored || false
+    }
+    await db.logVideo(video)
+    return video
+}
+
 router.get('/:camera/', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
@@ -33,11 +45,10 @@ router.put('/:camera/:date/', async (request, response, next) => {
     try {
         await saveFilePart(request.body.chunk, request.body.filename, request.params.camera, request.params.date)
         if (parseInt(request.body.part) === parseInt(request.body.parts) - 1) {
-            //await uploadCompleted(request.body.filename, parseInt(request.body.parts))
+            await logNewTemporalVideo(request, true)
         }
-        response.status(201).send()
+        response.status(206).send()
     } catch (e) {
-        console.log(e)
         let error = handleError(e, ERROR_MESSAGES)
         next(error)
     }
@@ -45,13 +56,7 @@ router.put('/:camera/:date/', async (request, response, next) => {
 
 router.post('/:camera/:date/', async (request, response, next) => {
     try {
-        await validateCameraID(request.params.camera)
-        const video = {
-            path: request.query.path,
-            date: request.params.date,
-            camera: request.params.camera
-        }
-        await db.logVideo(video)
+        const video = await logNewTemporalVideo(request, false)
         response.status(201).json(video)
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
