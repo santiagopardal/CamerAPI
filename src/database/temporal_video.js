@@ -6,7 +6,11 @@ const PATH = 'path'
 const DATE = 'date'
 
 function logVideo(video) {
-    return knex(TEMPORAL_VIDEOS_TABLE).insert(video)
+    return knex(TEMPORAL_VIDEOS_TABLE).insert(video).returning('id')
+}
+
+function markVideoAsLocallyStored(video_id) {
+    return knex(TEMPORAL_VIDEOS_TABLE).where('id', video_id).update('locally_stored', true)
 }
 
 function getAllVideos(camera) {
@@ -32,6 +36,7 @@ function deleteAllVideosInDate(camera, date) {
 
 module.exports = {
     logVideo,
+    markVideoAsLocallyStored,
     getAllVideos,
     getAllVideosInDate,
     deleteAllVideosInDate

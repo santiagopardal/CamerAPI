@@ -15,6 +15,8 @@ async function saveFilePart(bytes, fileName, camera, date) {
     } else {
         await fs.promises.appendFile(dir, Buffer.from(bytes, 'base64'))
     }
+
+    return dir
 }
 
-module.exports = { saveFilePart, videoPath }
+module.exports = { saveFilePart }
