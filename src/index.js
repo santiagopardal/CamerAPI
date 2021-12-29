@@ -10,7 +10,7 @@ const videos = require('./routes/videos')
 const temporalVideos = require('./routes/temporal_videos')
 
 app.use(morgan('dev'))
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({extended: false, limit: '5mb'}))
 app.use(express.json())
 app.use(cors())
 

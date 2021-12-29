@@ -8,3 +8,4 @@ services:
     volumes:
       - ${CAMERAI_IMAGES}:/Images
       - ${DATABASE}:/app/camerai.db
+      - ${TEMPORAL_VIDEOS}:/app/temporal_videos
