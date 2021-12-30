@@ -1,0 +1,2 @@
+rm camerai.db
+rm -rf temporal_videos
