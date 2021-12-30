@@ -26,10 +26,17 @@ async function saveFilePart(part, bytes, fileName, camera, date) {
 }
 
 async function createVideosFromParts(parts, fileName, camera, date) {
+    const finalVideoPath = await videoPath(fileName, camera, date)
+
+    mergeVideos(finalVideoPath, parts, fileName, camera, date)
+
+    return finalVideoPath
+}
+
+async function mergeVideos(finalVideoPath, parts, fileName, camera, date) {
     const dir = await tempPartsDir(fileName, camera, date)
     let part = await fs.promises.readFile(`${dir}/0.part`)
 
-    const finalVideoPath = await videoPath(fileName, camera, date)
     await fs.promises.writeFile(finalVideoPath, part)
 
     for (let i = 1; i < parts; i++) {
@@ -37,9 +44,22 @@ async function createVideosFromParts(parts, fileName, camera, date) {
         await fs.promises.appendFile(finalVideoPath, part)
     }
 
-    fs.rmSync(dir, { recursive: true, force: true });
+    removeFolder(dir)
+}
 
-    return finalVideoPath
+async function removeFolder(path) {
+    const files = fs.readdirSync(path)
+
+    files.forEach(function (filename) {
+        const pth = `${path}/${filename}`
+        if (fs.statSync(pth).isDirectory()) {
+            removeFolder(pth)
+        } else {
+            fs.unlinkSync(pth)
+        }
+    })
+
+    fs.rmdirSync(path)
 }
 
 module.exports = { saveFilePart, createVideosFromParts }
