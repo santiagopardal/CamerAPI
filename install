@@ -2,6 +2,7 @@ sudo apt-get install sqlite3
 
 sqlite3 camerai.db < ./database/camerapi.sql
 mkdir temporal_videos
+mkdir temp
 
 echo CAMERAI_IMAGES="$(cd .. && pwd)"/Images >> ./docker/.env
 echo DATABASE="$(pwd)"/camerai.db >> ./docker/.env

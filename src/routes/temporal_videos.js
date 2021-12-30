@@ -2,7 +2,7 @@ const router = require('express').Router()
 const db = require('../database/temporal_video')
 const { validateCameraID } = require('../routes/cameras')
 const { handleError } = require('../database/database_error')
-const { saveFilePart } = require('../video_handler')
+const { saveFilePart, createVideosFromParts } = require('../video_handler')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
@@ -31,10 +31,21 @@ router.get('/:camera/:date', async (request, response, next) => {
 
 router.put('/:camera/:date/', async (request, response, next) => {
     try {
-        const newPath = await saveFilePart(request.body.chunk, request.body.filename, request.params.camera, request.params.date)
-        if (parseInt(request.body.part) === parseInt(request.body.parts) - 1) {
+        const part = parseInt(request.body.part)
+        const parts = parseInt(request.body.parts)
+
+        await saveFilePart(part, request.body.chunk, request.body.filename, request.params.camera, request.params.date)
+
+        if (part === parts - 1) {
+            const newPath = await createVideosFromParts(
+                parts,
+                request.body.filename,
+                request.params.camera,
+                request.params.date
+            )
             await db.markVideoAsLocallyStored(request.query.old_path, newPath)
         }
+
         response.status(206).send()
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
