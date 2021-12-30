@@ -1,11 +1,12 @@
 const fs = require('fs')
+const path = require('path')
 
 async function videoPath(fileName, camera, date) {
-    const path = `temporal_videos/${camera}/${date}`
-    if (!fs.existsSync(path)) {
-        await fs.promises.mkdir(path, { recursive: true })
+    const videoPath = `temporal_videos/${camera}/${date}`
+    if (!fs.existsSync(videoPath)) {
+        await fs.promises.mkdir(videoPath, { recursive: true })
     }
-    return `${path}/${fileName}`
+    return path.resolve(`./${videoPath}/${fileName}`)
 }
 
 async function saveFilePart(bytes, fileName, camera, date) {
