@@ -19,12 +19,13 @@ async function validateVideoExists(id) {
     }
     video = video[0]
 
-    return video.path
+    return video
 }
 
 router.get('/:id/stream/', async function(request, response, next) {
     try {
-        const path = await validateVideoExists(request.params.id)
+        const video = await validateVideoExists(request.params.id)
+        const path = video.path
         const fileSize = videoHandler.getFileSize(path)
         const range = request.headers.range
         let options = null
@@ -120,7 +121,8 @@ router.post('/camera/:camera/:date/', async (request, response, next) => {
 
 router.delete('/:id', async (request, response, next) => {
     try {
-        const video = await db.getVideo(request.params.id)
+        const video = await validateVideoExists(request.params.id)
+
         if (video.locally_stored) {
             videoHandler.deleteVideo(video.path)
         }
