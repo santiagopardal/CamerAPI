@@ -62,4 +62,17 @@ async function removeFolder(path) {
     fs.rmdirSync(path)
 }
 
-module.exports = { saveFilePart, createVideosFromParts }
+function deleteVideo(path) {
+    fs.unlinkSync(path)
+}
+
+function getFileSize(path) {
+    const file = fs.statSync(path)
+    return file.size
+}
+
+function createReadStream(path, options) {
+    return fs.createReadStream(path, options)
+}
+
+module.exports = { saveFilePart, createVideosFromParts, getFileSize, createReadStream, deleteVideo }

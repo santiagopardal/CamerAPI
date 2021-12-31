@@ -15,6 +15,7 @@ function getAllVideos(cameraName) {
     return knex(VIDEOS_TABLE)
         .join(CAMERAS_TABLE, `${CAMERAS_TABLE}.${ID}`, `${VIDEOS_TABLE}.${CAMERA}`)
         .where(`${CAMERAS_TABLE}.${NAME}`, cameraName)
+        .select(ID)
         .select(PATH)
         .select(DATE)
 }

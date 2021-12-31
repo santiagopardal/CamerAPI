@@ -2,13 +2,63 @@ const router = require('express').Router()
 const db = require('../database/temporal_video')
 const { validateCameraID } = require('../routes/cameras')
 const { handleError } = require('../database/database_error')
-const { saveFilePart, createVideosFromParts } = require('../video_handler')
+const videoHandler = require('../video_handler')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
 }
 
-router.get('/:camera/', async (request, response, next) => {
+async function validateVideoExists(id) {
+    let video = await db.getVideo(id)
+
+    if (!video) {
+        const error = Error('There is no video with such id')
+        error.status = 404
+
+        throw error
+    }
+    video = video[0]
+
+    return video.path
+}
+
+router.get('/:id/stream/', async function(request, response, next) {
+    try {
+        const path = await validateVideoExists(request.params.id)
+        const fileSize = videoHandler.getFileSize(path)
+        const range = request.headers.range
+        let options = null
+        let head
+        let statusCode
+
+        if (range) {
+            const parts = range.replace(/bytes=/, '').split('-')
+            const start = parseInt(parts[0], 10)
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1
+            const chunkSize = end - start + 1
+
+            statusCode = 206
+            head = {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunkSize,
+                'Content-Type': 'video/mp4'
+            }
+            options = {start, end}
+        } else {
+            statusCode = 200
+            head = { 'Content-Length': fileSize,  'Content-Type': 'video/mp4' }
+        }
+
+        const readStream = videoHandler.createReadStream(path, options)
+        response.writeHead(statusCode, head);
+        readStream.pipe(response);
+    } catch (e) {
+        next(e)
+    }
+});
+
+router.get('/camera/:camera/', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
         let videos = await db.getAllVideos(request.params.camera)
@@ -18,26 +68,25 @@ router.get('/:camera/', async (request, response, next) => {
     }
 })
 
-router.get('/:camera/:date', async (request, response, next) => {
+router.get('/camera/:camera/:date', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
         let videos = await db.getAllVideosInDate(request.params.camera, request.params.date)
-        videos = videos.map(video => video.path)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
     }
 })
 
-router.put('/:camera/:date/', async (request, response, next) => {
+router.put('/camera/:camera/:date/', async (request, response, next) => {
     try {
         const part = parseInt(request.body.part)
         const parts = parseInt(request.body.parts)
 
-        await saveFilePart(part, request.body.chunk, request.body.filename, request.params.camera, request.params.date)
+        await videoHandler.saveFilePart(part, request.body.chunk, request.body.filename, request.params.camera, request.params.date)
 
         if (part === parts - 1) {
-            const newPath = await createVideosFromParts(
+            const newPath = await videoHandler.createVideosFromParts(
                 parts,
                 request.body.filename,
                 request.params.camera,
@@ -46,14 +95,14 @@ router.put('/:camera/:date/', async (request, response, next) => {
             await db.markVideoAsLocallyStored(request.query.old_path, newPath)
         }
 
-        response.status(206).send()
+        response.status(200).send()
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
         next(error)
     }
 })
 
-router.post('/:camera/:date/', async (request, response, next) => {
+router.post('/camera/:camera/:date/', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
         const video = {
@@ -69,7 +118,21 @@ router.post('/:camera/:date/', async (request, response, next) => {
     }
 })
 
-router.delete('/:camera/:date', async (request, response, next) => {
+router.delete('/:id', async (request, response, next) => {
+    try {
+        const video = await db.getVideo(request.params.id)
+        if (video.locally_stored) {
+            videoHandler.deleteVideo(video.path)
+        }
+        await db.deleteVideo(request.params.id)
+        response.status(204).send()
+    } catch (e) {
+        next(e)
+    }
+})
+
+
+router.delete('/camera/:camera/:date', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
         await db.deleteAllVideosInDate(request.params.camera, request.params.date)
