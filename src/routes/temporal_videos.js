@@ -99,7 +99,6 @@ router.put('/camera/:camera/:date/', async (request, response, next) => {
         response.status(200).send()
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
-        console.log(e)
         next(error)
     }
 })
