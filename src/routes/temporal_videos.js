@@ -1,7 +1,7 @@
 const router = require('express').Router()
-const db = require('../database/temporal_video')
+const db = require('../dao/video')
 const { validateCameraID } = require('../routes/cameras')
-const { handleError } = require('../database/database_error')
+const { handleError } = require('../dao/database_error')
 const videoHandler = require('../video_handler')
 
 const ERROR_MESSAGES = {
@@ -62,7 +62,7 @@ router.get('/:id/stream/', async function(request, response, next) {
 router.get('/camera/:camera/', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
-        let videos = await db.getAllVideos(request.params.camera)
+        let videos = await db.getAllTemporalVideos(request.params.camera)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
@@ -72,7 +72,7 @@ router.get('/camera/:camera/', async (request, response, next) => {
 router.get('/camera/:camera/:date', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
-        let videos = await db.getAllVideosInDate(request.params.camera, request.params.date)
+        let videos = await db.getAllTemporalVideosInDate(request.params.camera, request.params.date)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
@@ -137,7 +137,7 @@ router.delete('/:id', async (request, response, next) => {
 router.delete('/camera/:camera/:date', async (request, response, next) => {
     try {
         await validateCameraID(request.params.camera)
-        await db.deleteAllVideosInDate(request.params.camera, request.params.date)
+        await db.deleteAllTemporalVideosInDate(request.params.camera, request.params.date)
         response.status(204).send()
     } catch (e) {
         next(e)

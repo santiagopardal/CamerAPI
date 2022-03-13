@@ -13,22 +13,13 @@ CREATE TABLE camera (
 	PRIMARY KEY(id)
 );
 
-CREATE TABLE temporal_video (
-    id INTEGER NOT NULL,
-	path TEXT UNIQUE NOT NULL,
-	date TEXT NOT NULL,
-	camera INTEGER,
-	locally_stored INTEGER NOT NULL DEFAULT 0,
-	PRIMARY KEY(id),
-	FOREIGN KEY(camera) REFERENCES camera(id) ON DELETE CASCADE
-);
-
 CREATE TABLE video (
     id INTEGER NOT NULL,
 	path TEXT UNIQUE NOT NULL,
 	date TEXT NOT NULL,
 	camera INTEGER,
 	locally_stored INTEGER NOT NULL DEFAULT 0,
+	is_temporal TINYINT NOT NULL DEFAULT 1,
 	PRIMARY KEY(id),
 	FOREIGN KEY(camera) REFERENCES camera(id) ON DELETE CASCADE
 );

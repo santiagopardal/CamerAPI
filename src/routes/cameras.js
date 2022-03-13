@@ -1,6 +1,6 @@
 const router = require('express').Router()
-const db = require('../database/camera')
-const { handleError } = require('../database/database_error')
+const db = require('../dao/camera')
+const { handleError } = require('../dao/database_error')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'

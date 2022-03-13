@@ -1,8 +1,8 @@
 const router = require('express').Router()
 const { statSync } = require('fs')
-const db = require('../database/video')
+const db = require('../dao/video')
 const { validateCameraID } = require('../routes/cameras')
-const { handleError } = require('../database/database_error')
+const { handleError } = require('../dao/database_error')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
@@ -20,7 +20,7 @@ function videoToObject(video) {
 
 router.get('/:camera/', async (request, response, next) => {
     try {
-        let videos = await db.getAllVideos(request.params.camera)
+        let videos = await db.getAllFinalVideos(request.params.camera)
         videos = videos.map(video => videoToObject(video))
         response.status(200).json(videos)
     } catch (e) {
@@ -46,7 +46,7 @@ router.post('/:camera/:date/', async (request, response, next) => {
 
 router.get('/:camera/download/:date', async (request, response, next) => {
     try {
-        const pth = await db.getVideoPath(request.params.camera, request.params.date)
+        const pth = await db.getFinalVideoPath(request.params.camera, request.params.date)
 
         if (!pth) {
             const error = Error(`There are no videos from ${request.params.date}`)
