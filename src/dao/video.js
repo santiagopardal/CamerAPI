@@ -18,7 +18,7 @@ function getAllFinalVideos(cameraName) {
         .join(CAMERAS_TABLE, `${CAMERAS_TABLE}.${ID}`, `${VIDEOS_TABLE}.${CAMERA}`)
         .where(`${CAMERAS_TABLE}.${NAME}`, cameraName)
         .where(IS_TEMPORAL, 0)
-        .select(ID)
+        .select(`${VIDEOS_TABLE}.${ID}`)
         .select(PATH)
         .select(DATE)
 }

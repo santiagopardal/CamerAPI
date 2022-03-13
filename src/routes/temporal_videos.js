@@ -1,6 +1,5 @@
 const router = require('express').Router()
 const db = require('../dao/video')
-const { validateCameraID } = require('../routes/cameras')
 const { handleError } = require('../dao/database_error')
 const videoHandler = require('../video_handler')
 
@@ -59,38 +58,36 @@ router.get('/:id/stream/', async function(request, response, next) {
     }
 });
 
-router.get('/camera/:camera/', async (request, response, next) => {
+router.get('/', async (request, response, next) => {
     try {
-        await validateCameraID(request.params.camera)
-        let videos = await db.getAllTemporalVideos(request.params.camera)
+        let videos = await db.getAllTemporalVideos(request.camera)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
     }
 })
 
-router.get('/camera/:camera/:date', async (request, response, next) => {
+router.get('/:date', async (request, response, next) => {
     try {
-        await validateCameraID(request.params.camera)
-        let videos = await db.getAllTemporalVideosInDate(request.params.camera, request.params.date)
+        let videos = await db.getAllTemporalVideosInDate(request.camera, request.params.date)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
     }
 })
 
-router.put('/camera/:camera/:date/', async (request, response, next) => {
+router.put('/:date/', async (request, response, next) => {
     try {
         const part = parseInt(request.body.part)
         const parts = parseInt(request.body.parts)
 
-        await videoHandler.saveFilePart(part, request.body.chunk, request.body.filename, request.params.camera, request.params.date)
+        await videoHandler.saveFilePart(part, request.body.chunk, request.body.filename, request.camera, request.params.date)
 
         if (part === parts - 1) {
             const newPath = await videoHandler.createVideosFromParts(
                 parts,
                 request.body.filename,
-                request.params.camera,
+                request.camera,
                 request.params.date
             )
             await db.markVideoAsLocallyStored(request.query.old_path, newPath)
@@ -103,13 +100,12 @@ router.put('/camera/:camera/:date/', async (request, response, next) => {
     }
 })
 
-router.post('/camera/:camera/:date/', async (request, response, next) => {
+router.post('/:date/', async (request, response, next) => {
     try {
-        await validateCameraID(request.params.camera)
         const video = {
             path: request.query.path,
             date: request.params.date,
-            camera: request.params.camera
+            camera: request.camera
         }
         await db.logVideo(video)
         response.status(201).json(video)
@@ -134,10 +130,9 @@ router.delete('/:id', async (request, response, next) => {
 })
 
 
-router.delete('/camera/:camera/:date', async (request, response, next) => {
+router.delete('/:date', async (request, response, next) => {
     try {
-        await validateCameraID(request.params.camera)
-        await db.deleteAllTemporalVideosInDate(request.params.camera, request.params.date)
+        await db.deleteAllTemporalVideosInDate(request.camera, request.params.date)
         response.status(204).send()
     } catch (e) {
         next(e)

@@ -1,4 +1,6 @@
 const router = require('express').Router()
+const temporal_videos = require('./temporal_videos')
+const videos = require('./videos')
 const db = require('../dao/camera')
 const { handleError } = require('../dao/database_error')
 
@@ -71,7 +73,24 @@ router.get('/', async (_, response, next) => {
     }
 })
 
-module.exports = {
-    router,
-    validateCameraID
-}
+router.use('/:id/temporal_videos/', async (req, res, next) => {
+    try {
+        await validateCameraID(req.params.id)
+        req.camera = req.params.id;
+        next()
+    } catch (error) {
+        next(error)
+    }
+}, temporal_videos)
+
+router.use('/:id/videos/', async (req, res, next) => {
+    try {
+        await validateCameraID(req.params.id)
+        req.camera = req.params.id;
+        next()
+    } catch (error) {
+        next(error)
+    }
+}, videos)
+
+module.exports = router
