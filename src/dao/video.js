@@ -1,5 +1,5 @@
 const knex = require('./knex')
-const { CAMERAS_TABLE, VIDEOS_TABLE, TEMPORAL_VIDEOS_TABLE} = require('../constants')
+const { CAMERAS_TABLE, VIDEOS_TABLE } = require('../constants')
 
 const CAMERA = 'camera'
 const PATH = 'path'
@@ -33,13 +33,13 @@ async function getFinalVideoPath(camera, date) {
 }
 
 function markVideoAsLocallyStored(old_path, new_path) {
-    return knex(TEMPORAL_VIDEOS_TABLE)
+    return knex(VIDEOS_TABLE)
         .where('path', old_path)
         .update({ 'path': new_path, 'locally_stored': true })
 }
 
 async function getVideo(id) {
-    return knex(TEMPORAL_VIDEOS_TABLE)
+    return knex(VIDEOS_TABLE)
         .where(ID, id)
         .select(ID)
         .select(PATH)
@@ -49,7 +49,7 @@ async function getVideo(id) {
 }
 
 function getAllTemporalVideos(camera) {
-    return knex(TEMPORAL_VIDEOS_TABLE)
+    return knex(VIDEOS_TABLE)
         .where(CAMERA, camera)
         .where(IS_TEMPORAL, 1)
         .select(ID)
@@ -60,9 +60,9 @@ function getAllTemporalVideos(camera) {
 }
 
 function getAllTemporalVideosInDate(camera, date) {
-    return knex(TEMPORAL_VIDEOS_TABLE)
+    return knex(VIDEOS_TABLE)
         .where(CAMERA, camera)
-        .where(`${TEMPORAL_VIDEOS_TABLE}.${DATE}`, date)
+        .where(`${VIDEOS_TABLE}.${DATE}`, date)
         .where(IS_TEMPORAL, 1)
         .select(ID)
         .select(PATH)
@@ -71,15 +71,15 @@ function getAllTemporalVideosInDate(camera, date) {
 }
 
 function deleteVideo(id) {
-    return knex(TEMPORAL_VIDEOS_TABLE)
+    return knex(VIDEOS_TABLE)
         .where(ID, id)
         .del()
 }
 
 function deleteAllTemporalVideosInDate(camera, date) {
-    return knex(TEMPORAL_VIDEOS_TABLE)
+    return knex(VIDEOS_TABLE)
         .where(CAMERA, camera)
-        .where(`${TEMPORAL_VIDEOS_TABLE}.${DATE}`, date)
+        .where(`${VIDEOS_TABLE}.${DATE}`, date)
         .where(IS_TEMPORAL, 1)
         .del()
 }
