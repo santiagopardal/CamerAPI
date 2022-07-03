@@ -3,7 +3,6 @@ const { CONNECTION_TABLE } = require('../constants')
 
 
 function logStatus(status) {
-    console.log(status)
     return knex(CONNECTION_TABLE).insert(status)
 }
 
