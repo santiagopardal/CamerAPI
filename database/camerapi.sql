@@ -17,9 +17,18 @@ CREATE TABLE video (
     id INTEGER NOT NULL,
 	path TEXT UNIQUE NOT NULL,
 	date TEXT NOT NULL,
-	camera INTEGER,
+	camera INTEGER NOT NULL,
 	locally_stored INTEGER NOT NULL DEFAULT 0,
 	is_temporal TINYINT NOT NULL DEFAULT 1,
 	PRIMARY KEY(id),
 	FOREIGN KEY(camera) REFERENCES camera(id) ON DELETE CASCADE
+);
+
+CREATE TABLE connection(
+    id INTEGER NOT NULL,
+    camera INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    date DATE NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (camera) REFERENCES camera(id) ON DELETE CASCADE
 );
