@@ -13,20 +13,18 @@ function logVideo(video) {
     return knex(VIDEOS_TABLE).insert(video)
 }
 
-function getAllFinalVideos(cameraName) {
+function getAllFinalVideos(cameraId) {
     return knex(VIDEOS_TABLE)
-        .join(CAMERAS_TABLE, `${CAMERAS_TABLE}.${ID}`, `${VIDEOS_TABLE}.${CAMERA}`)
-        .where(`${CAMERAS_TABLE}.${NAME}`, cameraName)
+        .where(`${CAMERA}`, cameraId)
         .where(IS_TEMPORAL, 0)
-        .select(`${VIDEOS_TABLE}.${ID}`)
+        .select(`${ID}`)
         .select(PATH)
         .select(DATE)
 }
 
 async function getFinalVideoPath(camera, date) {
     return (await knex(VIDEOS_TABLE)
-        .join(CAMERAS_TABLE, `${CAMERAS_TABLE}.${ID}`, `${VIDEOS_TABLE}.${CAMERA}`)
-        .where(`${CAMERAS_TABLE}.${NAME}`, camera)
+        .where(`${CAMERA}`, camera)
         .where(`${VIDEOS_TABLE}.${DATE}`, date)
         .where(IS_TEMPORAL, 0)
         .select(PATH))[0]
