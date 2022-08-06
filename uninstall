@@ -1,3 +1,3 @@
-rm camerai.db
-rm -rf temporal_videos
-rm -rf temp
+sudo rm camerai.db
+sudo rm -rf temporal_videos
+sudo rm -rf temp
