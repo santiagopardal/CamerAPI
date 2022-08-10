@@ -1,7 +1,8 @@
 const router = require('express').Router()
 const temporal_videos = require('./temporal_videos')
 const videos = require('./videos')
-const db = require('../dao/camera')
+const { validateNode } = require('./node')
+const dao = require('../dao/camera')
 const connection_dao = require('../dao/connection_dao')
 const { handleError } = require('../dao/database_error')
 
@@ -10,7 +11,7 @@ const ERROR_MESSAGES = {
 }
 
 async function validateCameraID(id) {
-    const cam = await db.getCamera(id)
+    const cam = await dao.getCamera(id)
 
     if (!cam) {
         const error = Error('There is no camera with such id')
@@ -24,7 +25,8 @@ async function validateCameraID(id) {
 
 router.post('/', async (request, response, next) => {
     try {
-        await db.createCamera(request.query)
+        await dao.createCamera(request.query)
+        await validateNode(request.query.node)
         response.status(201).json(request.query)
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)
@@ -57,9 +59,12 @@ router.post('/:id/connection_status/', async (request, response, next) => {
 
 router.patch('/:id', async (request, response, next) => {
     try {
+        if (request.params.node) {
+            validateNode(request.params.node)
+        }
         await validateCameraID(request.params.id)
-        await db.updateCamera(request.params.id, request.query)
-        const cameraUpdated = await db.getCamera(request.params.id)
+        await dao.updateCamera(request.params.id, request.query)
+        const cameraUpdated = await dao.getCamera(request.params.id)
         response.status(200).json(cameraUpdated);
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)
@@ -70,7 +75,7 @@ router.patch('/:id', async (request, response, next) => {
 router.delete('/:id', async (request, response, next) => {
     try {
         await validateCameraID(request.params.id)
-        await db.deleteCamera(request.params.id)
+        await dao.deleteCamera(request.params.id)
 
         response.status(204).send()
     }
@@ -88,9 +93,19 @@ router.get('/:id', async (request, response, next) => {
     }
 })
 
+router.get('/node/:id', async (request, response, next) => {
+    try {
+        await validateNode(request.params.id)
+        let cameras = dao.getInNode(request.params.id)
+        response.status(200).json(cameras)
+    } catch (e) {
+        next(e)
+    }
+})
+
 router.get('/', async (_, response, next) => {
     try {
-        let result = await db.getAllCameras()
+        let result = await dao.getAllCameras()
         response.status(200).json(result)
     } catch (e) {
         next(e)

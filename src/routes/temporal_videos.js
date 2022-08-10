@@ -1,5 +1,6 @@
 const router = require('express').Router()
-const db = require('../dao/video')
+const { validateNode } = require('../dao/node_dao')
+const dao = require('../dao/video')
 const { handleError } = require('../dao/database_error')
 const videoHandler = require('../video_handler')
 
@@ -8,7 +9,7 @@ const ERROR_MESSAGES = {
 }
 
 async function validateVideoExists(id) {
-    let video = await db.getVideo(id)
+    let video = await dao.getVideo(id)
 
     if (!video) {
         const error = Error('There is no video with such id')
@@ -60,7 +61,7 @@ router.get('/:id/stream/', async function(request, response, next) {
 
 router.get('/', async (request, response, next) => {
     try {
-        let videos = await db.getAllTemporalVideos(request.camera)
+        let videos = await dao.getAllTemporalVideos(request.camera)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
@@ -69,7 +70,7 @@ router.get('/', async (request, response, next) => {
 
 router.get('/:date', async (request, response, next) => {
     try {
-        let videos = await db.getAllTemporalVideosInDate(request.camera, request.params.date)
+        let videos = await dao.getAllTemporalVideosInDate(request.camera, request.params.date)
         response.status(200).json(videos)
     } catch (e) {
         next(e)
@@ -90,7 +91,7 @@ router.put('/:date/', async (request, response, next) => {
                 request.camera,
                 request.params.date
             )
-            await db.markVideoAsLocallyStored(request.query.old_path, newPath)
+            await dao.markVideoAsLocallyStored(request.query.old_path, newPath)
         }
 
         response.status(200).send()
@@ -102,12 +103,14 @@ router.put('/:date/', async (request, response, next) => {
 
 router.post('/:date/', async (request, response, next) => {
     try {
+        await validateNode(request.query.node)
         const video = {
             path: request.query.path,
             date: request.params.date,
-            camera: request.camera
+            camera: request.camera,
+            node: request.query.node
         }
-        await db.logVideo(video)
+        await dao.logVideo(video)
         response.status(201).json(video)
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
@@ -122,7 +125,7 @@ router.delete('/:id', async (request, response, next) => {
         if (video.locally_stored) {
             videoHandler.deleteVideo(video.path)
         }
-        await db.deleteVideo(request.params.id)
+        await dao.deleteVideo(request.params.id)
         response.status(204).send()
     } catch (e) {
         next(e)
@@ -132,7 +135,7 @@ router.delete('/:id', async (request, response, next) => {
 
 router.delete('/:date', async (request, response, next) => {
     try {
-        await db.deleteAllTemporalVideosInDate(request.camera, request.params.date)
+        await dao.deleteAllTemporalVideosInDate(request.camera, request.params.date)
         response.status(204).send()
     } catch (e) {
         next(e)

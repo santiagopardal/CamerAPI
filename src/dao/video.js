@@ -33,7 +33,7 @@ async function getFinalVideoPath(camera, date) {
 function markVideoAsLocallyStored(old_path, new_path) {
     return knex(VIDEOS_TABLE)
         .where('path', old_path)
-        .update({ 'path': new_path, 'locally_stored': true })
+        .update({ 'path': new_path, 'node': 1 })
 }
 
 async function getVideo(id) {

@@ -1,16 +1,26 @@
+CREATE TABLE node (
+    id INTEGER NOT NULL,
+    ip TEXT NOT NULL,
+    port INTEGER NOT NULL,
+    last_request TEXT NOT NULL,
+    PRIMARY KEY (ip, port)
+);
+
 CREATE TABLE camera (
 	id INTEGER NOT NULL,
 	name TEXT UNIQUE NOT NULL,
-	model	TEXT NOT NULL,
+	model TEXT NOT NULL,
 	ip TEXT NOT NULL,
 	streaming_port INTEGER,
-	http_port	INTEGER NOT NULL,
+	http_port INTEGER NOT NULL,
 	user TEXT NOT NULL,
 	password TEXT NOT NULL,
-	width	INTEGER NOT NULL,
+	width INTEGER NOT NULL,
 	height INTEGER NOT NULL,
-	framerate	INTEGER NOT NULL,
-	PRIMARY KEY(id)
+	framerate INTEGER NOT NULL,
+	node INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY (node) REFERENCES node(id)
 );
 
 CREATE TABLE video (
@@ -18,10 +28,11 @@ CREATE TABLE video (
 	path TEXT UNIQUE NOT NULL,
 	date TEXT NOT NULL,
 	camera INTEGER NOT NULL,
-	locally_stored INTEGER NOT NULL DEFAULT 0,
+	node INTEGER NOT NULL,
 	is_temporal TINYINT NOT NULL DEFAULT 1,
-	PRIMARY KEY(id),
-	FOREIGN KEY(camera) REFERENCES camera(id) ON DELETE CASCADE
+	PRIMARY KEY (id),
+	FOREIGN KEY (camera) REFERENCES camera(id) ON DELETE CASCADE,
+	FOREIGN KEY (node) REFERENCES node(id) ON DELETE CASCADE
 );
 
 CREATE TABLE connection(
