@@ -17,13 +17,17 @@ app.use(cors())
 
 app.use(async (request, response, next) => {
     try {
-        if (request.headers.nodeid) {
-            await node_dao.validateNode(request.headers.nodeid)
-            node_dao.update({id: request.headers.nodeid, last_request: Date.now()})
+        if (request.headers.node_id) {
+            await node_dao.validateNode(request.headers.node_id)
+            let date = new Date()
+            await node_dao.update({
+                id: request.headers.node_id,
+                last_request: `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}@${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+            })
         }
         next()
     } catch (e) {
-        response.status(404).json({error: `Invalid authentication: ${e.message}`})
+        response.status(401).json({error: `Invalid authentication: ${e.message}`})
     }
 })
 

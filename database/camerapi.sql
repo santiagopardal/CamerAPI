@@ -3,7 +3,7 @@ CREATE TABLE node (
     ip TEXT NOT NULL,
     port INTEGER NOT NULL,
     last_request TEXT NOT NULL,
-    PRIMARY KEY (ip, port)
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE camera (

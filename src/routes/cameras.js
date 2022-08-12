@@ -26,7 +26,7 @@ async function validateCameraID(id) {
 router.post('/', async (request, response, next) => {
     try {
         await dao.createCamera(request.query)
-        await validateNode(request.query.node)
+        await validateNode(request.headers.node_id)
         response.status(201).json(request.query)
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)

@@ -103,12 +103,12 @@ router.put('/:date/', async (request, response, next) => {
 
 router.post('/:date/', async (request, response, next) => {
     try {
-        await validateNode(request.query.node)
+        await validateNode(request.headers.node_id)
         const video = {
             path: request.query.path,
             date: request.params.date,
             camera: request.camera,
-            node: request.query.node
+            node: request.headers.node_id
         }
         await dao.logVideo(video)
         response.status(201).json(video)
