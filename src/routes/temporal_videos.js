@@ -82,15 +82,16 @@ router.put('/:date/', async (request, response, next) => {
         const part = parseInt(request.body.part)
         const parts = parseInt(request.body.parts)
 
-        videoHandler.saveFilePart(part, request.body.chunk, request.body.filename, request.camera, request.params.date)
+        await videoHandler.saveFilePart(part, request.body.chunk, request.body.filename, request.camera, request.params.date)
 
-        if (part === parts - 1) {
-            const newPath = await videoHandler.createVideosFromParts(
+        const newPath = await videoHandler.createVideosFromParts(
                 parts,
                 request.body.filename,
                 request.camera,
                 request.params.date
             )
+
+        if (newPath) {
             dao.markVideoAsLocallyStored(request.query.old_path, newPath)
         }
 

@@ -28,23 +28,32 @@ async function saveFilePart(part, bytes, fileName, camera, date) {
 async function createVideosFromParts(parts, fileName, camera, date) {
     const finalVideoPath = await videoPath(fileName, camera, date)
 
-    mergeVideos(finalVideoPath, parts, fileName, camera, date)
-
-    return finalVideoPath
+    return await mergeVideos(finalVideoPath, parts, fileName, camera, date)
 }
 
 async function mergeVideos(finalVideoPath, parts, fileName, camera, date) {
     const dir = await tempPartsDir(fileName, camera, date)
-    let part = await fs.promises.readFile(`${dir}/0.part`)
+    let allPartsExist = true
 
-    await fs.promises.writeFile(finalVideoPath, part)
-
-    for (let i = 1; i < parts; i++) {
-        part = await fs.promises.readFile(`${dir}/${i}.part`)
-        await fs.promises.appendFile(finalVideoPath, part)
+    for (let i = 0; i < parts && allPartsExist; i++) {
+        allPartsExist = fs.existsSync(`${dir}/${i}.part`)
     }
 
-    removeFolder(dir)
+    if (allPartsExist) {
+        let part = await fs.promises.readFile(`${dir}/0.part`)
+
+        await fs.promises.writeFile(finalVideoPath, part)
+
+        for (let i = 1; i < parts; i++) {
+            part = await fs.promises.readFile(`${dir}/${i}.part`)
+            await fs.promises.appendFile(finalVideoPath, part)
+        }
+
+        removeFolder(dir)
+
+        return finalVideoPath
+    }
+    return null
 }
 
 async function removeFolder(path) {
