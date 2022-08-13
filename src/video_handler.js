@@ -27,7 +27,6 @@ async function saveFilePart(part, bytes, fileName, camera, date) {
 
 async function createVideosFromParts(parts, fileName, camera, date) {
     const finalVideoPath = await videoPath(fileName, camera, date)
-
     return await mergeVideos(finalVideoPath, parts, fileName, camera, date)
 }
 

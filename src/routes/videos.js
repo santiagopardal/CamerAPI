@@ -31,7 +31,7 @@ router.get('/', async (request, response, next) => {
 router.post('/:date/', async (request, response, next) => {
     try {
         const video = {
-            path: request.query.path,
+            path: request.body.path,
             date: request.params.date,
             camera: request.camera,
             is_temporal: false,

@@ -79,20 +79,20 @@ router.get('/:date', async (request, response, next) => {
 
 router.put('/:date/', async (request, response, next) => {
     try {
-        const part = parseInt(request.body.part)
-        const parts = parseInt(request.body.parts)
-
-        await videoHandler.saveFilePart(part, request.body.chunk, request.body.filename, request.camera, request.params.date)
-
-        const newPath = await videoHandler.createVideosFromParts(
+        let { part, parts, chunk, filename, old_path, upload_complete } = request.body
+        part = parseInt(part)
+        parts = parseInt(parts)
+        upload_complete = upload_complete === 'True'
+        if (upload_complete) {
+            const newPath = await videoHandler.createVideosFromParts(
                 parts,
-                request.body.filename,
+                filename,
                 request.camera,
                 request.params.date
             )
-
-        if (newPath) {
-            dao.markVideoAsLocallyStored(request.query.old_path, newPath)
+            dao.markVideoAsLocallyStored(old_path, newPath)
+        } else {
+            await videoHandler.saveFilePart(part, chunk, filename, request.camera, request.params.date)
         }
 
         response.status(200).send()
@@ -106,7 +106,7 @@ router.post('/:date/', async (request, response, next) => {
     try {
         await validateNode(request.headers.node_id)
         const video = {
-            path: request.query.path,
+            path: request.body.path,
             date: request.params.date,
             camera: request.camera,
             node: request.headers.node_id

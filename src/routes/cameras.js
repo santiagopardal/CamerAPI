@@ -1,6 +1,6 @@
 const router = require('express').Router()
-const temporal_videos = require('./temporal_videos')
 const videos = require('./videos')
+const temporal_videos = require('./temporal_videos')
 const { validateNode } = require('./node')
 const dao = require('../dao/camera')
 const connection_dao = require('../dao/connection_dao')
@@ -25,9 +25,9 @@ async function validateCameraID(id) {
 
 router.post('/', async (request, response, next) => {
     try {
-        await dao.createCamera(request.query)
-        await validateNode(request.headers.node_id)
-        response.status(201).json(request.query)
+        await validateNode(request.body.node_id)
+        await dao.createCamera(request.body)
+        response.status(201).json(request.body)
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)
         next(error)
@@ -39,8 +39,8 @@ router.post('/:id/connection_status/', async (request, response, next) => {
         await validateCameraID(request.params.id)
         let status = {
             camera: request.params.id,
-            message: request.query.message,
-            date: request.query.date
+            message: request.body.message,
+            date: request.body.date
         }
 
         if (!status.message || ! status.date) {
@@ -59,11 +59,11 @@ router.post('/:id/connection_status/', async (request, response, next) => {
 
 router.patch('/:id', async (request, response, next) => {
     try {
-        if (request.params.node) {
-            validateNode(request.params.node)
+        if (request.params.node_id) {
+            validateNode(request.params.node_id)
         }
         await validateCameraID(request.params.id)
-        await dao.updateCamera(request.params.id, request.query)
+        await dao.updateCamera(request.params.id, request.body)
         const cameraUpdated = await dao.getCamera(request.params.id)
         response.status(200).json(cameraUpdated);
     } catch (error) {
