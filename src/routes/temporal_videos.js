@@ -14,7 +14,6 @@ async function validateVideoExists(id) {
     if (!video) {
         const error = Error('There is no video with such id')
         error.status = 404
-
         throw error
     }
     video = video[0]
@@ -91,11 +90,11 @@ router.put('/:date/', async (request, response, next) => {
                 request.params.date
             )
             dao.markVideoAsLocallyStored(old_path, newPath)
+            response.status(201).send()
         } else {
             await videoHandler.saveFilePart(part, chunk, filename, request.camera, request.params.date)
+            response.status(200).send()
         }
-
-        response.status(200).send()
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
         next(error)
@@ -123,7 +122,7 @@ router.delete('/:id', async (request, response, next) => {
     try {
         const video = await validateVideoExists(request.params.id)
 
-        if (video.locally_stored) {
+        if (video.node_id === 1) {
             videoHandler.deleteVideo(video.path)
         }
         await dao.deleteVideo(request.params.id)

@@ -16,7 +16,6 @@ async function validateCameraID(id) {
     if (!cam) {
         const error = Error('There is no camera with such id')
         error.status = 404
-
         throw error
     }
 
@@ -65,7 +64,7 @@ router.patch('/:id', async (request, response, next) => {
         await validateCameraID(request.params.id)
         await dao.updateCamera(request.params.id, request.body)
         const cameraUpdated = await dao.getCamera(request.params.id)
-        response.status(200).json(cameraUpdated);
+        response.status(200).json(cameraUpdated)
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)
         next(error)
@@ -76,7 +75,6 @@ router.delete('/:id', async (request, response, next) => {
     try {
         await validateCameraID(request.params.id)
         await dao.deleteCamera(request.params.id)
-
         response.status(204).send()
     }
     catch(error) {
@@ -115,7 +113,7 @@ router.get('/', async (_, response, next) => {
 router.use('/:id/temporal_videos/', async (req, res, next) => {
     try {
         await validateCameraID(req.params.id)
-        req.camera = req.params.id;
+        req.camera = req.params.id
         next()
     } catch (error) {
         next(error)

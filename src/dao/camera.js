@@ -17,7 +17,8 @@ function getInNode(nodeId) {
 }
 
 async function getCamera(id) {
-    return (await knex(CAMERAS_TABLE).where(ID, id).select('*'))[0]
+    const camera = await knex(CAMERAS_TABLE).where(ID, id).select('*')
+    return camera ? camera[0] : null
 }
 
 function deleteCamera(cameraId) {

@@ -7,7 +7,6 @@ const DATE = 'date'
 const ID = 'id'
 const NAME = 'name'
 const IS_TEMPORAL = 'is_temporal'
-const LOCALLY_STORED = 'locally_stored'
 
 function logVideo(video) {
     return knex(VIDEOS_TABLE).insert(video)
@@ -23,11 +22,12 @@ function getAllFinalVideos(cameraId) {
 }
 
 async function getFinalVideoPath(camera, date) {
-    return (await knex(VIDEOS_TABLE)
+    const videos = await knex(VIDEOS_TABLE)
         .where(`${CAMERA}`, camera)
         .where(`${VIDEOS_TABLE}.${DATE}`, date)
         .where(IS_TEMPORAL, 0)
-        .select(PATH))[0]
+        .select(PATH)
+    return videos ? videos[0].path : null
 }
 
 function markVideoAsLocallyStored(old_path, new_path) {

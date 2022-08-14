@@ -20,22 +20,18 @@ async function validateNode(id) {
 }
 
 function getNodes() {
-    return knex(NODES_TABLE)
-        .select(ID)
-        .select(IP)
-        .select(PORT)
+    return knex(NODES_TABLE).select(ID).select(IP).select(PORT)
 }
 
 async function getNode(node) {
     let query = knex(NODES_TABLE).select(ID).select(IP).select(PORT)
     Object.keys(node).forEach(key => query.where(key, node[key]))
-    return (await query)[0]
+    const nodeFetched = await query
+    return nodeFetched ? nodeFetched[0] : null
 }
 
 function deleteNode(id) {
-    return knex(NODES_TABLE)
-        .where(ID, id)
-        .delete()
+    return knex(NODES_TABLE).where(ID, id).delete()
 }
 
 function saveNode(node) {
@@ -43,9 +39,7 @@ function saveNode(node) {
 }
 
 function update(node) {
-    return knex(NODES_TABLE)
-        .where(ID, node.id)
-        .update(node)
+    return knex(NODES_TABLE).where(ID, node.id).update(node)
 }
 
 module.exports = {

@@ -8,13 +8,16 @@ const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
 }
 
-function videoToObject(video) {
-    let file_s = statSync(video.path).size/(1024*1024*1024)
-    file_s = String(file_s).substr(0, 4)
+const BYTES_TO_GIGABYTES = 1024*1024*1024
 
-    return { 
-        day: video.date,
-        file_size: `${file_s} GB`
+function videoToObject(video) {
+    let { path, date } = video
+    let fileSize = statSync(path).size/BYTES_TO_GIGABYTES
+    fileSize = String(fileSize).substring(0, 4)
+
+    return {
+        day: date,
+        file_size: `${fileSize} GB`
     }
 }
 
@@ -47,14 +50,12 @@ router.post('/:date/', async (request, response, next) => {
 
 router.get('/download/:date', async (request, response, next) => {
     try {
-        const pth = (await dao.getFinalVideoPath(request.camera, request.params.date)).path
+        const pth = await dao.getFinalVideoPath(request.camera, request.params.date)
         if (!pth) {
             const error = Error(`There are no videos from ${request.params.date}`)
             error.status = 404
-
             next(error)
         }
-        
         response.sendFile(pth)
     } catch (e) {
         next(e)
@@ -67,7 +68,7 @@ router.get('/stream/:date', async (request, response, next) => {
         if (!range) {
             response.status(400).send("Requires Range header");
         }
-        const videoPath = (await dao.getFinalVideoPath(request.camera, request.params.date)).path
+        const videoPath = await dao.getFinalVideoPath(request.camera, request.params.date)
         const videoSize = fs.statSync(videoPath).size;
         const CHUNK_SIZE = 10 ** 6;
         const start = Number(range.replace(/\D/g, ""));
