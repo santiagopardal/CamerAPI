@@ -1,10 +1,12 @@
 const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
+const ip = require('ip')
 const { validateNode } = require('../dao/node_dao')
 const dao = require('../dao/camera')
 const connection_dao = require('../dao/connection_dao')
 const { handleError } = require('../dao/database_error')
+const requestToNode = require('../node_client/NodeClient')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'
@@ -86,6 +88,27 @@ router.get('/:id', async (request, response, next) => {
     try {
         let result = await validateCameraID(request.params.id)
         response.status(200).json(result)
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.get('/snapshot/:id', async (request, response, next) => {
+    try {
+        let { node } = await validateCameraID(request.params.id)
+        node = await validateNode(node)
+        let nodeIp = node.ip
+        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
+            nodeIp = ip.address()
+
+        let nodeRequest = {
+            method: 'get_snapshot_url',
+            args: {
+                cameraId: request.params.id
+            }
+        }
+
+        requestToNode(nodeIp, nodeRequest, (nodeResponse) => response.redirect(nodeResponse), (error) => next(error))
     } catch (error) {
         next(error)
     }
