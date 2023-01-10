@@ -37,7 +37,7 @@ function requestToNode(nodeIp, arguments, callback, errorCallback) {
         let message = packMessage(arguments)
         let client = new Socket()
         client.connect({host: nodeIp, port: NODE_PORT}, () => client.write(Buffer.from(message)))
-        client.on('data', (data) => {console.log(data); data = data.slice(9); callback(JSON.parse(data));})
+        client.on('data', (data) => {data = data.slice(9); callback(JSON.parse(data));})
         client.on('close', () => console.log('Closed connection'))
     } catch (error) {
         console.log(`Error communicating with node: ${error}`)

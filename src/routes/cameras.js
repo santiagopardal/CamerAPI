@@ -103,9 +103,7 @@ router.get('/snapshot/:id', async (request, response, next) => {
 
         let nodeRequest = {
             method: 'get_snapshot_url',
-            args: {
-                cameraId: request.params.id
-            }
+            args: request.params.id
         }
 
         requestToNode(nodeIp, nodeRequest, (nodeResponse) => response.redirect(nodeResponse), (error) => next(error))
