@@ -106,7 +106,7 @@ router.get('/snapshot/:id', async (request, response, next) => {
             args: request.params.id
         }
 
-        requestToNode(nodeIp, nodeRequest, (nodeResponse) => response.redirect(nodeResponse), (error) => next(error))
+        requestToNode(nodeIp, nodeRequest, (nodeResponse) => response.redirect(nodeResponse.result), (error) => next(error))
     } catch (error) {
         next(error)
     }
