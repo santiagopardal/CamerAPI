@@ -24,6 +24,46 @@ async function validateCameraID(id) {
     return cam
 }
 
+router.get('/:id/recording_status', async (request, response, next) => {
+    try {
+        let { node } = await validateCameraID(request.params.id)
+        node = await validateNode(node)
+        let nodeIp = node.ip
+        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
+        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
+            nodeIp = ip.address()
+
+        let nodeRequest = {
+            method: 'is_recording',
+            args: request.params.id
+        }
+
+        requestToNode(nodeIp, nodeRequest, (nodeResponse) => response.status(200).json({isRecording: nodeResponse.result}), (error) => next(error))
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.post('/:id/recording_status', async (request, response, next) => {
+    try {
+        let { node } = await validateCameraID(request.params.id)
+        node = await validateNode(node)
+        let nodeIp = node.ip
+        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
+        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
+            nodeIp = ip.address()
+
+        let nodeRequest = {
+            method: request.body.record ? 'record' : 'stop_recording',
+            args: [request.params.id]
+        }
+
+        requestToNode(nodeIp, nodeRequest, () => response.status(200).send('Ok'), (error) => next(error))
+    } catch (error) {
+        next(error)
+    }
+})
+
 router.post('/', async (request, response, next) => {
     try {
         await validateNode(request.body.node_id)
