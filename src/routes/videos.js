@@ -3,6 +3,7 @@ const { statSync } = require('fs')
 const dao = require('../dao/video')
 const { handleError } = require('../dao/database_error')
 const fs = require("fs")
+const moment = require('moment')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
@@ -25,6 +26,21 @@ router.get('/', async (request, response, next) => {
     try {
         let videos = await dao.getAllFinalVideos(request.camera)
         videos = videos.map(video => videoToObject(video))
+        response.status(200).json(videos)
+    } catch (e) {
+        next(e)
+    }
+})
+
+router.get('/from/:startingDate/to/:endingDate', async (request, response, next) => {
+    try {
+        let { startingDate, endingDate } = request.params
+        startingDate = moment(startingDate, 'DD-MM-YYYY')
+        endingDate = moment(endingDate, 'DD-MM-YYYY')
+
+        let videos = await dao.getFinalVideosBetweenDates(request.camera, startingDate, endingDate)
+        videos = videos.map(video => videoToObject(video))
+
         response.status(200).json(videos)
     } catch (e) {
         next(e)
