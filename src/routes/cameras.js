@@ -38,7 +38,8 @@ router.get('/:id/recording_status', async (request, response, next) => {
             args: request.params.id
         }
 
-        requestToNode(nodeIp, nodeRequest, (nodeResponse) => response.status(200).json({isRecording: nodeResponse.result}), (error) => next(error))
+        let nodeResponse = await requestToNode(nodeIp, nodeRequest)
+        response.status(200).json({isRecording: nodeResponse.result})
     } catch (error) {
         next(error)
     }
@@ -58,7 +59,8 @@ router.post('/:id/recording_status', async (request, response, next) => {
             args: [request.params.id]
         }
 
-        requestToNode(nodeIp, nodeRequest, () => response.status(200).send('Ok'), (error) => next(error))
+        await requestToNode(nodeIp, nodeRequest)
+        response.status(200).send('Ok')
     } catch (error) {
         next(error)
     }
@@ -147,9 +149,21 @@ router.get('/snapshot/:id', async (request, response, next) => {
             args: request.params.id
         }
 
-        requestToNode(nodeIp, nodeRequest, (nodeResponse) => response.redirect(nodeResponse.result), (error) => next(error))
-    } catch (error) {
-        next(error)
+        let nodeResponse = await requestToNode(nodeIp, nodeRequest)
+
+        let cameraResponse = await fetch(nodeResponse.result)
+        let responseBlob = await cameraResponse.blob()
+        let arrayBuffer = await responseBlob.arrayBuffer()
+        let buffer = Buffer.from(arrayBuffer)
+        response.type(responseBlob.type)
+        response.send(buffer)
+    } catch (err) {
+        let error = { message: `Could not connect to camera: ${err}`, status: 500 }
+        if (err.cause && err.cause.code === 'EHOSTUNREACH') {
+            error.message = 'Could not connect to camera, camera was unreachable'
+            error.status = 503
+        }
+        return next(error)
     }
 })
 

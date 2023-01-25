@@ -32,18 +32,22 @@ function packMessage(arguments) {
     return message
 }
 
-function requestToNode(nodeIp, arguments, callback, errorCallback) {
-    try {
-        let message = packMessage(arguments)
-        let client = new Socket()
-        client.connect({host: nodeIp, port: NODE_PORT}, () => client.write(Buffer.from(message)))
-        client.on('data', (data) => {data = data.subarray(9); callback(JSON.parse(data));})
-        client.on('close', () => console.log('Closed connection'))
-        client.on('error', (error) => errorCallback(error))
-    } catch (error) {
-        console.log(`Error communicating with node: ${error}`)
-        errorCallback(error)
-    }
+async function requestToNode(nodeIp, methodArgs) {
+    return new Promise(
+        (resolve, reject) => {
+            try {
+                let message = packMessage(methodArgs)
+                let client = new Socket()
+                client.connect({host: nodeIp, port: NODE_PORT}, () => client.write(Buffer.from(message)))
+                client.on('data', data => {data = data.subarray(9); resolve(JSON.parse(data));})
+                client.on('close', () => console.log('Closed connection'))
+                client.on('error', error => reject(error))
+            } catch (error) {
+                console.log(`Error communicating with node: ${error}`)
+                reject(error)
+            }
+        }
+    )
 }
 
 module.exports = requestToNode
