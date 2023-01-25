@@ -21,5 +21,8 @@ app.use('/api/node/', nodes)
 app.use('/api/cameras/', cameras)
 app.use('/api/temporal_videos/', temporal_videos)
 app.use('/', fallback)
+app.use(async (error, req, response, _) => {
+    response.status(error.status || 500).json({ error: error.message })
+})
 
 app.listen(8080, () => console.log('Up & running'))

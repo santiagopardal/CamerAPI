@@ -7,8 +7,4 @@ app.use(async (request, response, next) => {
     next(err)
 })
 
-app.use(async (error, req, response, _) => {
-    response.status(error.status || 500).json({ error: error.message })
-})
-
 module.exports = app
