@@ -29,11 +29,20 @@ function updateCamera(cameraId, camera) {
     return knex(CAMERAS_TABLE).where(ID, cameraId).update(camera)
 }
 
+function getLastStatus(cameraId) {
+    return knex('connection')
+        .select('message')
+        .where('camera', cameraId)
+        .orderBy('id', 'DESC')
+        .limit(1)
+}
+
 module.exports = {
     createCamera,
     getAllCameras,
     getInNode,
     getCamera,
     deleteCamera,
-    updateCamera
+    updateCamera,
+    getLastStatus
 }

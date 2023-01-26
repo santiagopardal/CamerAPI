@@ -13,6 +13,20 @@ const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'
 }
 
+router.get('/:id/is_online', tryCatch(
+    async (request, response) => {
+        let camera = await validateCameraID(request.params.id)
+        let lastStatus = await dao.getLastStatus(camera.id)
+        response
+            .status(200)
+            .json(
+                {
+                    isOnline: lastStatus.length > 0 && lastStatus.pop().message === 'Connected'
+                }
+            )
+    }
+))
+
 router.get('/:id/recording_status', tryCatch(
     async (request, response) => {
         let nodeIp = await getNodeIp(request.params.id)

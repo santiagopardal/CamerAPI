@@ -1,6 +1,6 @@
 const tryCatch = (controller) => async (request, response, next) => {
     try {
-        controller(request, response, next)
+        await controller(request, response, next)
     } catch (error) {
         next(error)
     }
