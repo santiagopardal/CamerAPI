@@ -42,8 +42,9 @@ router.post('/:id/recording_status', tryCatch(
         let method = request.body.record ? 'record' : 'stop_recording'
         let args = [request.params.id]
 
-        await requestToNode(nodeIp, method, args)
-        response.status(200).send('Ok')
+        let nodeResponse = await requestToNode(nodeIp, method, args)
+        let isRecording = nodeResponse.result[request.params.id]
+        response.status(200).json({isRecording: isRecording})
     })
 )
 
