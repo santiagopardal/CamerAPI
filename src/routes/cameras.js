@@ -1,12 +1,12 @@
 const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
-const { validateNode, getNode} = require('../dao/node_dao')
+const { validateNode } = require('../dao/node_dao')
 const dao = require('../dao/camera')
 const connection_dao = require('../dao/connection_dao')
 const { handleError } = require('../dao/database_error')
 const requestToNode = require('../node_client/NodeClient')
-const { validateCameraID } = require('../utils/cameras')
+const { validateCameraID, getNodeIp } = require('../utils/cameras')
 const tryCatch = require('../controllers/tryCatch')
 
 const ERROR_MESSAGES = {
@@ -15,7 +15,7 @@ const ERROR_MESSAGES = {
 
 router.get('/:id/recording_status', tryCatch(
     async (request, response) => {
-        let nodeIp = getNode(request.params.id)
+        let nodeIp = await getNodeIp(request.params.id)
         let nodeResponse = await requestToNode(nodeIp, 'is_recording', request.params.id)
         response.status(200).json({isRecording: nodeResponse.result})
     })
@@ -23,7 +23,7 @@ router.get('/:id/recording_status', tryCatch(
 
 router.post('/:id/recording_status', tryCatch(
     async (request, response) => {
-        let nodeIp = getNode(request.params.id)
+        let nodeIp = await getNodeIp(request.params.id)
 
         let method = request.body.record ? 'record' : 'stop_recording'
         let args = [request.params.id]
@@ -99,7 +99,7 @@ router.get('/:id', tryCatch(
 
 router.get('/snapshot/:id', async (request, response, next) => {
     try {
-        let nodeIp = getNode(request.params.id)
+        let nodeIp = await getNodeIp(request.params.id)
         let nodeResponse = await requestToNode(nodeIp, 'get_snapshot_url', request.params.id)
         let cameraResponse = await fetch(nodeResponse.result)
         let responseBlob = await cameraResponse.blob()
@@ -113,7 +113,7 @@ router.get('/snapshot/:id', async (request, response, next) => {
             error.message = 'Could not connect to camera, camera was unreachable'
             error.status = 503
         }
-        return next(error)
+        next(error)
     }
 })
 
@@ -132,22 +132,20 @@ router.get('/', tryCatch(
     })
 )
 
-router.use('/:id/temporal_videos/', tryCatch(
-    async (req, res, next) => {
-        await validateCameraID(req.params.id)
-        req.camera = req.params.id
-        next()
-    }),
-    temporal_videos
+router.use('/:id/temporal_videos/', async (req, res, next) => {
+    await validateCameraID(req.params.id)
+    req.camera = req.params.id
+    next()
+},
+temporal_videos
 )
 
-router.use('/:id/videos/', tryCatch(
-    async (req, res, next) => {
-        await validateCameraID(req.params.id)
-        req.camera = req.params.id
-        next()
-    },
-    videos)
+router.use('/:id/videos/', async (req, res, next) => {
+    await validateCameraID(req.params.id)
+    req.camera = req.params.id
+    next()
+},
+videos
 )
 
 module.exports = router
