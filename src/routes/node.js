@@ -1,8 +1,9 @@
 const router = require('express').Router()
 const dao = require('../dao/node_dao')
+const tryCatch = require('../controllers/tryCatch')
 
-router.post('/', async (request, response, next) => {
-    try {
+router.post('/', tryCatch(
+    async (request, response) => {
         let nodeData = {
             ip: request.headers['x-forwarded-for'] || request.socket.remoteAddress,
             port: request.body.port,
@@ -18,37 +19,29 @@ router.post('/', async (request, response, next) => {
         } else {
             response.status(200).json(node)
         }
-    } catch (error) {
-        next(error)
-    }
-})
+    })
+)
 
-router.get('/:id', async (request, response, next) => {
-    try {
+router.get('/:id', tryCatch(
+    async (request, response) => {
         let result = await dao.validateNode(request.params.id)
         response.status(200).json(result)
-    } catch (error) {
-        next(error)
-    }
-})
+    })
+)
 
-router.delete('/:id', async (request, response, next) => {
-    try {
+router.delete('/:id', tryCatch(
+    async (request, response) => {
         await dao.validateNode(request.params.id)
         await dao.deleteNode(request.params.id)
         response.status(200).send()
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
-router.get('/', async (_, response, next) => {
-    try {
+router.get('/', tryCatch(
+    async (_, response) => {
         let result = await dao.getNodes()
         response.status(200).json(result)
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
 module.exports = router

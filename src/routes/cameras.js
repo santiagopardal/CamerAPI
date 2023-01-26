@@ -1,70 +1,37 @@
 const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
-const ip = require('ip')
-const { validateNode } = require('../dao/node_dao')
+const { validateNode, getNode} = require('../dao/node_dao')
 const dao = require('../dao/camera')
 const connection_dao = require('../dao/connection_dao')
 const { handleError } = require('../dao/database_error')
 const requestToNode = require('../node_client/NodeClient')
+const { validateCameraID } = require('../utils/cameras')
+const tryCatch = require('../controllers/tryCatch')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'
 }
 
-async function validateCameraID(id) {
-    const cam = await dao.getCamera(id)
-
-    if (!cam) {
-        const error = Error('There is no camera with such id')
-        error.status = 404
-        throw error
-    }
-
-    return cam
-}
-
-router.get('/:id/recording_status', async (request, response, next) => {
-    try {
-        let { node } = await validateCameraID(request.params.id)
-        node = await validateNode(node)
-        let nodeIp = node.ip
-        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
-        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
-            nodeIp = ip.address()
-
-        let nodeRequest = {
-            method: 'is_recording',
-            args: request.params.id
-        }
-
-        let nodeResponse = await requestToNode(nodeIp, nodeRequest)
+router.get('/:id/recording_status', tryCatch(
+    async (request, response) => {
+        let nodeIp = getNode(request.params.id)
+        let nodeResponse = await requestToNode(nodeIp, 'is_recording', request.params.id)
         response.status(200).json({isRecording: nodeResponse.result})
-    } catch (error) {
-        next(error)
-    }
-})
+    })
+)
 
-router.post('/:id/recording_status', async (request, response, next) => {
-    try {
-        let { node } = await validateCameraID(request.params.id)
-        node = await validateNode(node)
-        let nodeIp = node.ip
-        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
-        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
-            nodeIp = ip.address()
+router.post('/:id/recording_status', tryCatch(
+    async (request, response) => {
+        let nodeIp = getNode(request.params.id)
 
-        let nodeRequest = {
-            method: request.body.record ? 'record' : 'stop_recording',
-            args: [request.params.id]
-        }
+        let method = request.body.record ? 'record' : 'stop_recording'
+        let args = [request.params.id]
 
-        await requestToNode(nodeIp, nodeRequest)
+        await requestToNode(nodeIp, method, args)
         response.status(200).send('Ok')
-    } catch (error) {
-        next(error)
-    }
-})
+    })
+)
 
 router.post('/', async (request, response, next) => {
     try {
@@ -115,42 +82,25 @@ router.patch('/:id', async (request, response, next) => {
     }
 })
 
-router.delete('/:id', async (request, response, next) => {
-    try {
+router.delete('/:id', tryCatch(
+    async (request, response) => {
         await validateCameraID(request.params.id)
         await dao.deleteCamera(request.params.id)
         response.status(204).send()
-    }
-    catch(error) {
-        next(error)
-    }
-})
+    })
+)
 
-router.get('/:id', async (request, response, next) => {
-    try {
-        let result = await validateCameraID(request.params.id)
+router.get('/:id', tryCatch(
+    async (request, response) => {
+       let result = await validateCameraID(request.params.id)
         response.status(200).json(result)
-    } catch (error) {
-        next(error)
-    }
-})
+    })
+)
 
 router.get('/snapshot/:id', async (request, response, next) => {
     try {
-        let { node } = await validateCameraID(request.params.id)
-        node = await validateNode(node)
-        let nodeIp = node.ip
-        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
-        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
-            nodeIp = ip.address()
-
-        let nodeRequest = {
-            method: 'get_snapshot_url',
-            args: request.params.id
-        }
-
-        let nodeResponse = await requestToNode(nodeIp, nodeRequest)
-
+        let nodeIp = getNode(request.params.id)
+        let nodeResponse = await requestToNode(nodeIp, 'get_snapshot_url', request.params.id)
         let cameraResponse = await fetch(nodeResponse.result)
         let responseBlob = await cameraResponse.blob()
         let arrayBuffer = await responseBlob.arrayBuffer()
@@ -167,43 +117,37 @@ router.get('/snapshot/:id', async (request, response, next) => {
     }
 })
 
-router.get('/node/:id', async (request, response, next) => {
-    try {
+router.get('/node/:id', tryCatch(
+    async (request, response) => {
         await validateNode(request.params.id)
         let cameras = await dao.getInNode(request.params.id)
         response.status(200).json(cameras)
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
-router.get('/', async (_, response, next) => {
-    try {
+router.get('/', tryCatch(
+    async (_, response) => {
         let result = await dao.getAllCameras()
         response.status(200).json(result)
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
-router.use('/:id/temporal_videos/', async (req, res, next) => {
-    try {
+router.use('/:id/temporal_videos/', tryCatch(
+    async (req, res, next) => {
         await validateCameraID(req.params.id)
         req.camera = req.params.id
         next()
-    } catch (error) {
-        next(error)
-    }
-}, temporal_videos)
+    }),
+    temporal_videos
+)
 
-router.use('/:id/videos/', async (req, res, next) => {
-    try {
+router.use('/:id/videos/', tryCatch(
+    async (req, res, next) => {
         await validateCameraID(req.params.id)
         req.camera = req.params.id
         next()
-    } catch (error) {
-        next(error)
-    }
-}, videos)
+    },
+    videos)
+)
 
 module.exports = router

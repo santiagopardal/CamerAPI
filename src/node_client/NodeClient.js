@@ -32,7 +32,8 @@ function packMessage(arguments) {
     return message
 }
 
-async function requestToNode(nodeIp, methodArgs) {
+async function requestToNode(nodeIp, method, args) {
+    let methodArgs = { method: method, args: args}
     return new Promise(
         (resolve, reject) => {
             try {

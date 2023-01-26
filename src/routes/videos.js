@@ -4,6 +4,7 @@ const dao = require('../dao/video')
 const { handleError } = require('../dao/database_error')
 const fs = require("fs")
 const moment = require('moment')
+const tryCatch = require('../controllers/tryCatch')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
@@ -22,18 +23,15 @@ function videoToObject(video) {
     }
 }
 
-router.get('/', async (request, response, next) => {
-    try {
+router.get('/', tryCatch(
+    async (request, response) => {
         let videos = await dao.getAllFinalVideos(request.camera)
         videos = videos.map(video => videoToObject(video))
         response.status(200).json(videos)
-    } catch (e) {
-        next(e)
-    }
-})
-
-router.get('/from/:startingDate/to/:endingDate', async (request, response, next) => {
-    try {
+    })
+)
+router.get('/from/:startingDate/to/:endingDate', tryCatch(
+    async (request, response, next) => {
         let { startingDate, endingDate } = request.params
         startingDate = moment(startingDate, 'DD-MM-YYYY')
         endingDate = moment(endingDate, 'DD-MM-YYYY')
@@ -42,10 +40,8 @@ router.get('/from/:startingDate/to/:endingDate', async (request, response, next)
         videos = videos.map(video => videoToObject(video))
 
         response.status(200).json(videos)
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
 router.post('/:date/', async (request, response, next) => {
     try {
@@ -64,8 +60,8 @@ router.post('/:date/', async (request, response, next) => {
     }
 })
 
-router.get('/download/:date', async (request, response, next) => {
-    try {
+router.get('/download/:date', tryCatch(
+    async (request, response, next) => {
         const pth = await dao.getFinalVideoPath(request.camera, request.params.date)
         if (!pth) {
             const error = Error(`There are no videos from ${request.params.date}`)
@@ -73,13 +69,11 @@ router.get('/download/:date', async (request, response, next) => {
             next(error)
         }
         response.sendFile(pth)
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
-router.get('/stream/:date', async (request, response, next) => {
-    try {
+router.get('/stream/:date', tryCatch(
+    async (request, response) => {
         const range = request.headers.range;
         if (!range) {
             response.status(400).send("Requires Range header");
@@ -99,9 +93,7 @@ router.get('/stream/:date', async (request, response, next) => {
         response.writeHead(206, headers);
         const videoStream = fs.createReadStream(videoPath, { start, end });
         videoStream.pipe(response);
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
 module.exports = router

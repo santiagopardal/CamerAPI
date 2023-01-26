@@ -3,6 +3,7 @@ const { validateNode } = require('../dao/node_dao')
 const dao = require('../dao/video')
 const { handleError } = require('../dao/database_error')
 const videoHandler = require('../video_handler')
+const tryCatch = require('../controllers/tryCatch')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
@@ -21,8 +22,8 @@ async function validateVideoExists(id) {
     return video
 }
 
-router.get('/:id/stream/', async function(request, response, next) {
-    try {
+router.get('/:id/stream/', tryCatch(
+    async function(request, response) {
         const video = await validateVideoExists(request.params.id)
         const path = video.path
         const fileSize = videoHandler.getFileSize(path)
@@ -53,28 +54,22 @@ router.get('/:id/stream/', async function(request, response, next) {
         const readStream = videoHandler.createReadStream(path, options)
         response.writeHead(statusCode, head);
         readStream.pipe(response);
-    } catch (e) {
-        next(e)
-    }
-});
+    })
+)
 
-router.get('/', async (request, response, next) => {
-    try {
+router.get('/', tryCatch(
+    async (request, response) => {
         let videos = await dao.getAllTemporalVideos(request.camera)
         response.status(200).json(videos)
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
-router.get('/:date', async (request, response, next) => {
-    try {
+router.get('/:date', tryCatch(
+    async (request, response) => {
         let videos = await dao.getAllTemporalVideosInDate(request.camera, request.params.date)
         response.status(200).json(videos)
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
 router.put('/:date/', async (request, response, next) => {
     try {
@@ -118,8 +113,8 @@ router.post('/:date/', async (request, response, next) => {
     }
 })
 
-router.delete('/:id', async (request, response, next) => {
-    try {
+router.delete('/:id', tryCatch(
+    async (request, response) => {
         const video = await validateVideoExists(request.params.id)
 
         if (video.node_id === 1) {
@@ -127,19 +122,15 @@ router.delete('/:id', async (request, response, next) => {
         }
         await dao.deleteVideo(request.params.id)
         response.status(204).send()
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
 
-router.delete('/:date', async (request, response, next) => {
-    try {
+router.delete('/:date', tryCatch(
+    async (request, response) => {
         await dao.deleteAllTemporalVideosInDate(request.camera, request.params.date)
         response.status(204).send()
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
 
 module.exports = router
