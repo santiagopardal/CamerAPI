@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const dao = require('../dao/node_dao')
+const camerasDao = require('../dao/camera')
 const tryCatch = require('../controllers/tryCatch')
 
 router.post('/', tryCatch(
@@ -36,6 +37,14 @@ router.delete('/:id', tryCatch(
         response.status(200).send()
     })
 )
+
+router.get('/:id/cameras', tryCatch(
+    async (request, response) => {
+        await dao.validateNode(request.params.id)
+        let camerasInNode = await camerasDao.getInNode(request.params.id)
+        response.status(200).json(camerasInNode)
+    }
+))
 
 router.get('/', tryCatch(
     async (_, response) => {
