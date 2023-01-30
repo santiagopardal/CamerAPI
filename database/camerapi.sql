@@ -19,8 +19,18 @@ CREATE TABLE camera (
 	height INTEGER NOT NULL,
 	framerate INTEGER NOT NULL,
 	node INTEGER NOT NULL,
+	configurations INTEGER UNIQUE NOT NULL,
 	PRIMARY KEY (id),
-	FOREIGN KEY (node) REFERENCES node(id)
+	FOREIGN KEY (node) REFERENCES node(id),
+	FOREIGN KEY (configurations) REFERENCES cameraConfigurations(id)
+);
+
+CREATE TABLE cameraConfigurations (
+    camera INTEGER NOT NULL UNIQUE,
+    recording INTEGER NOT NULL,
+    sensitivity FLOAT NOT NULL,
+    PRIMARY KEY (camera),
+    FOREIGN KEY (camera) REFERENCES camera(id)
 );
 
 CREATE TABLE video (
