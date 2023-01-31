@@ -16,4 +16,8 @@ const getConfigurations = async (cameraIds) => {
         .whereRaw(orCondition.join(' OR '))
 }
 
-module.exports = { getConfigurations }
+const updateConfigurations = async (configurations) => {
+    return knex(CAMERA_CONFIGURATION_TABLE).where(CAMERA, configurations.cameraId).update(configurations)
+}
+
+module.exports = { getConfigurations, updateConfigurations }

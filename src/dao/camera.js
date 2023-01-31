@@ -1,5 +1,5 @@
 const knex = require('./knex')
-const { getConfigurations } = require('./camera_configurations_dao')
+const { getConfigurations, updateConfigurations } = require('./camera_configurations_dao')
 const { CAMERAS_TABLE } = require('../constants')
 
 const ID = 'id'
@@ -50,8 +50,12 @@ function deleteCamera(cameraId) {
     return knex(CAMERAS_TABLE).where(ID, cameraId).delete()
 }
 
-function updateCamera(cameraId, camera) {
-    return knex(CAMERAS_TABLE).where(ID, cameraId).update(camera)
+async function updateCamera(cameraId, camera) {
+    let configs = camera.configurations
+    configs.cameraId = cameraId
+    await updateConfigurations(configs)
+    delete camera.configurations
+    return knex(CAMERAS_TABLE).where(ID, cameraId).where('name', camera.name).update(camera)
 }
 
 function getLastStatus(cameraId) {
