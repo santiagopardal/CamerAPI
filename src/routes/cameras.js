@@ -27,14 +27,6 @@ router.get('/:id/is_online', tryCatch(
     }
 ))
 
-router.get('/:id/recording_status', tryCatch(
-    async (request, response) => {
-        let nodeIp = await getNodeIp(request.params.id)
-        let nodeResponse = await requestToNode(nodeIp, 'is_recording', request.params.id)
-        response.status(200).json({isRecording: nodeResponse.result})
-    })
-)
-
 router.post('/:id/recording_status', tryCatch(
     async (request, response) => {
         let nodeIp = await getNodeIp(request.params.id)
