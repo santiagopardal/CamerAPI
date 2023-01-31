@@ -18,8 +18,8 @@ const addConfigurationsToManyCameras = async (queryPromise) => {
     let configs = await getConfigurations(ids)
     let configsMapped = configs.reduce(
         (accumulator, cameraConfigs) => {
-            const { camera, recording, sensitivity } = cameraConfigs
-            accumulator[camera] = { recording, sensitivity }
+            const { cameraId, recording, sensitivity } = cameraConfigs
+            accumulator[cameraId] = { recording, sensitivity }
             return accumulator
         },
         {}
