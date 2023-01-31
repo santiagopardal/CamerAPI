@@ -50,7 +50,6 @@ router.post('/:id/recording_status', tryCatch(
 
 router.post('/', async (request, response, next) => {
     try {
-        await validateNode(request.body.node_id)
         await dao.createCamera(request.body)
         response.status(201).json(request.body)
     } catch (error) {
@@ -84,14 +83,16 @@ router.post('/:id/connection_status/', async (request, response, next) => {
 
 router.patch('/:id', async (request, response, next) => {
     try {
-        if (request.params.node_id) {
-            validateNode(request.params.node_id)
+        let cameraId = parseInt(request.params.id)
+        if (request.params.id) {
+            await validateCameraID(request.params.id)
         }
         await validateCameraID(request.params.id)
-        await dao.updateCamera(request.params.id, request.body)
+        await dao.updateCamera(cameraId, request.body)
         const cameraUpdated = await dao.getCamera(request.params.id)
         response.status(200).json(cameraUpdated)
     } catch (error) {
+        console.log(error)
         error = handleError(error, ERROR_MESSAGES)
         next(error)
     }

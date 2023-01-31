@@ -1,7 +1,7 @@
 const knex = require('./knex')
 const { CAMERA_CONFIGURATION_TABLE } = require('../constants')
 
-const CAMERA = 'camera'
+const CAMERA = 'cameraId'
 const RECORDING = 'recording'
 const SENSITIVITY = 'sensitivity'
 
