@@ -76,11 +76,19 @@ router.post('/:id/connection_status/', async (request, response, next) => {
 router.patch('/:id', async (request, response, next) => {
     try {
         let cameraId = parseInt(request.params.id)
+        let oldCamera = null
         if (request.params.id) {
-            await validateCameraID(request.params.id)
+            oldCamera = await validateCameraID(request.params.id)
+        }
+        const newCamera = request.body
+        if (oldCamera) {
+            if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
+                const node = getNodeIp(cameraId)
+                await requestToNode(node.ip, 'update_sensitivity', {camera_id: cameraId, sensitivity: newCamera.configurations.sensitivity})
+            }
         }
         await validateCameraID(request.params.id)
-        await dao.updateCamera(cameraId, request.body)
+        await dao.updateCamera(cameraId, newCamera)
         const cameraUpdated = await dao.getCamera(request.params.id)
         response.status(200).json(cameraUpdated)
     } catch (error) {
