@@ -9,40 +9,34 @@ const requestToNode = require('../node_client/NodeClient')
 const { validateCameraID, getNodeIp } = require('../utils/cameras')
 const tryCatch = require('../controllers/tryCatch')
 
+const Camera = require('../models/Camera')
+
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'
 }
 
 router.get('/:id/is_online', tryCatch(
     async (request, response) => {
-        let camera = await validateCameraID(request.params.id)
-        let lastStatus = await dao.getLastStatus(camera.id)
-        response
-            .status(200)
-            .json(
-                {
-                    isOnline: lastStatus.length > 0 && lastStatus.pop().message === 'Connected'
-                }
-            )
+        const camera = new Camera(request.params.id)
+        await camera.load()
+        const isOnline = await camera.isOnline()
+        response.status(200).json({ isOnline: isOnline})
     }
 ))
 
 router.post('/:id/recording_status', tryCatch(
     async (request, response) => {
-        let nodeIp = await getNodeIp(request.params.id)
-
-        let method = request.body.record ? 'record' : 'stop_recording'
-        let args = [request.params.id]
-
-        let nodeResponse = await requestToNode(nodeIp, method, args)
-        let isRecording = nodeResponse.result[request.params.id]
+        const camera = new Camera(request.params.id)
+        const isRecording = await camera.switchRecording(request.body.record)
         response.status(200).json({isRecording: isRecording})
     })
 )
 
 router.post('/', async (request, response, next) => {
     try {
-        await dao.createCamera(request.body)
+        const camera = new Camera()
+        camera.setValues(request.body)
+        await camera.save()
         response.status(201).json(request.body)
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)
@@ -52,7 +46,8 @@ router.post('/', async (request, response, next) => {
 
 router.post('/:id/connection_status/', async (request, response, next) => {
     try {
-        await validateCameraID(request.params.id)
+        const camera = new Camera(request.params.id)
+        await camera.load()
         let status = {
             camera: request.params.id,
             message: request.body.message,
@@ -75,22 +70,16 @@ router.post('/:id/connection_status/', async (request, response, next) => {
 
 router.patch('/:id', async (request, response, next) => {
     try {
-        let cameraId = parseInt(request.params.id)
-        let oldCamera = null
-        if (request.params.id) {
-            oldCamera = await validateCameraID(request.params.id)
+        const oldCamera = new Camera(request.params.id)
+        await oldCamera.load()
+        const newCamera = new Camera(request.params.id)
+        newCamera.setValues(request.body)
+        if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
+            const node = getNodeIp(newCamera.id)
+            await requestToNode(node.ip, 'update_sensitivity', {camera_id: newCamera.id, sensitivity: newCamera.configurations.sensitivity})
         }
-        const newCamera = request.body
-        if (oldCamera) {
-            if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
-                const node = getNodeIp(cameraId)
-                await requestToNode(node.ip, 'update_sensitivity', {camera_id: cameraId, sensitivity: newCamera.configurations.sensitivity})
-            }
-        }
-        await validateCameraID(request.params.id)
-        await dao.updateCamera(cameraId, newCamera)
-        const cameraUpdated = await dao.getCamera(request.params.id)
-        response.status(200).json(cameraUpdated)
+        await newCamera.save()
+        response.status(200).json(newCamera.toJSON())
     } catch (error) {
         console.log(error)
         error = handleError(error, ERROR_MESSAGES)
@@ -100,21 +89,24 @@ router.patch('/:id', async (request, response, next) => {
 
 router.delete('/:id', tryCatch(
     async (request, response) => {
-        await validateCameraID(request.params.id)
-        await dao.deleteCamera(request.params.id)
+        const camera = new Camera(request.params.id)
+        await camera.load()
+        await camera.delete()
         response.status(204).send()
     })
 )
 
 router.get('/:id', tryCatch(
     async (request, response) => {
-       let result = await validateCameraID(request.params.id)
-        response.status(200).json(result)
+        const camera = new Camera(request.params.id)
+        await camera.load()
+        response.status(200).json(camera.toJSON())
     })
 )
 
 router.get('/snapshot/:id', async (request, response, next) => {
     try {
+        console.log('Request:', request.params)
         let nodeIp = await getNodeIp(request.params.id)
         let nodeResponse = await requestToNode(nodeIp, 'get_snapshot_url', request.params.id)
         let cameraResponse = await fetch(nodeResponse.result)
