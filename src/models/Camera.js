@@ -8,7 +8,7 @@ class Camera {
         this.id = id
     }
 
-    setValues({ name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node, configurations }) {
+    async setValues({ name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node, configurations }) {
         this.name = name
         this.model = model
         this.ip = ip
@@ -20,7 +20,10 @@ class Camera {
         this.height = height
         this.framerate = framerate
         this.node = node
-        if (!(configurations instanceof CameraConfigurations)) {
+        if (!configurations) {
+            configurations = new CameraConfigurations(this)
+            await configurations.load()
+        } else if (!(configurations instanceof CameraConfigurations)) {
             const configurationsJSON = configurations
             configurations = new CameraConfigurations(this)
             configurations.setValues(configurationsJSON)
@@ -41,7 +44,7 @@ class Camera {
         await configurations.load()
         camera.configurations = configurations
 
-        this.setValues(camera)
+        await this.setValues(camera)
     }
 
     async save() {

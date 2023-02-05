@@ -38,7 +38,7 @@ router.post('/:id/recording_status', tryCatch(
 router.post('/', async (request, response, next) => {
     try {
         const camera = new Camera()
-        camera.setValues(request.body)
+        await camera.setValues(request.body)
         await camera.save()
         response.status(201).json(request.body)
     } catch (error) {
@@ -74,7 +74,7 @@ router.patch('/:id', async (request, response, next) => {
     try {
         const oldCamera = await cameraController.get(request.params.id)
         const newCamera = new Camera(request.params.id)
-        newCamera.setValues(request.body)
+        await newCamera.setValues(request.body)
         if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
             const node = getNodeIp(newCamera.id)
             await requestToNode(node.ip, 'update_sensitivity', {camera_id: newCamera.id, sensitivity: newCamera.configurations.sensitivity})

@@ -9,10 +9,15 @@ class CameraController {
     }
 
     async getAll() {
-        let cameras = await CameraDAO.getAllCameras()
-        cameras = cameras.map(camera => new Camera(camera.id))
+        let camerasAsJSON = await CameraDAO.getAllCameras()
         const promises = []
-        cameras.forEach(camera => promises.push(camera.load()))
+        const cameras = camerasAsJSON.map(
+            camera => {
+                const cam = new Camera(camera.id)
+                promises.push(cam.setValues(camera))
+                return cam
+            }
+        )
         for (const promise of promises) {
             await promise
         }
