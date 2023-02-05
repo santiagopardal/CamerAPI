@@ -1,8 +1,7 @@
 const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
-const { validateNode } = require('../dao/node_dao')
-const dao = require('../dao/camera')
+const Node = require('../models/Node')
 const connection_dao = require('../dao/connection_dao')
 const { handleError } = require('../dao/database_error')
 const requestToNode = require('../node_client/NodeClient')
@@ -126,9 +125,9 @@ router.get('/snapshot/:id', async (request, response, next) => {
 
 router.get('/node/:id', tryCatch(
     async (request, response) => {
-        await validateNode(request.params.id)
-        let cameras = await dao.getInNode(request.params.id)
-        response.status(200).json(cameras)
+        const node = new Node(request.params.id)
+        await node.load()
+        response.status(200).json(await node.getCameras())
     })
 )
 

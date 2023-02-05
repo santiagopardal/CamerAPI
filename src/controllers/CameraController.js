@@ -1,5 +1,6 @@
 const Camera = require('../models/Camera')
 const CameraDAO = require('../dao/camera')
+const {getCamerasFromJSON} = require('../utils/cameras')
 
 class CameraController {
     async get(id) {
@@ -10,18 +11,7 @@ class CameraController {
 
     async getAll() {
         let camerasAsJSON = await CameraDAO.getAllCameras()
-        const promises = []
-        const cameras = camerasAsJSON.map(
-            camera => {
-                const cam = new Camera(camera.id)
-                promises.push(cam.setValues(camera))
-                return cam
-            }
-        )
-        for (const promise of promises) {
-            await promise
-        }
-        return cameras
+        return await getCamerasFromJSON(camerasAsJSON)
     }
 }
 

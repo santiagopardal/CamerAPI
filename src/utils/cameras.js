@@ -1,6 +1,7 @@
 const {validateNode} = require('../dao/node_dao')
 const ip = require('ip')
 const dao = require('../dao/camera')
+const Camera = require('../models/Camera')
 
 const validateCameraID = async(id) => {
     const cam = await dao.getCamera(id)
@@ -25,7 +26,24 @@ const getNodeIp = async (cameraId) => {
     return nodeIp
 }
 
+const getCamerasFromJSON = async (camerasAsJSON) => {
+    const promises = []
+    const cameras = camerasAsJSON.map(
+        camera => {
+            const cam = new Camera(camera.id)
+            promises.push(cam.setValues(camera))
+            return cam
+        }
+    )
+    console.log(cameras)
+    for (const promise of promises) {
+        await promise
+    }
+    return cameras
+}
+
 module.exports = {
     validateCameraID,
-    getNodeIp
+    getNodeIp,
+    getCamerasFromJSON
 }
