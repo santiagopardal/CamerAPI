@@ -35,7 +35,6 @@ const getCamerasFromJSON = async (camerasAsJSON) => {
             return cam
         }
     )
-    console.log(cameras)
     for (const promise of promises) {
         await promise
     }
