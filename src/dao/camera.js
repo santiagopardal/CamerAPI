@@ -1,20 +1,9 @@
 const knex = require('./knex')
-const { getConfigurations, update } = require('./camera_configurations_dao')
+const { getConfigurations } = require('./camera_configurations_dao')
 const { CAMERAS_TABLE } = require('../constants')
 
 const ID = 'id'
 const NODE = 'node'
-
-const addConfigurationsToCamera = async (cameraId, queryPromise) => {
-    const configsArray = await getConfigurations([cameraId])
-    let configs = {}
-    if (configsArray.length > 0) {
-        configs = configsArray[0]
-        const camera = await queryPromise
-        return {...camera, configurations: { recording: !!configs.recording, sensitivity: configs.sensitivity }}
-    }
-    return null
-}
 
 const addConfigurationsToManyCameras = async (queryPromise) => {
     let cameras = await queryPromise
@@ -47,7 +36,7 @@ function getInNode(nodeId) {
 
 async function getCamera(id) {
     const camera = await knex(CAMERAS_TABLE).where(ID, id).select('*').limit(1)
-    return camera ? addConfigurationsToCamera(id, camera[0]) : null
+    return camera ? camera[0] : null
 }
 
 function deleteCamera(cameraId) {

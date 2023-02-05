@@ -8,6 +8,8 @@ const { handleError } = require('../dao/database_error')
 const requestToNode = require('../node_client/NodeClient')
 const { validateCameraID, getNodeIp } = require('../utils/cameras')
 const tryCatch = require('../controllers/tryCatch')
+const CameraController = require('../controllers/CameraController')
+
 
 const Camera = require('../models/Camera')
 
@@ -15,10 +17,11 @@ const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'
 }
 
+const cameraController = new CameraController()
+
 router.get('/:id/is_online', tryCatch(
     async (request, response) => {
-        const camera = new Camera(request.params.id)
-        await camera.load()
+        const camera = await cameraController.get(request.params.id)
         const isOnline = await camera.isOnline()
         response.status(200).json({ isOnline: isOnline})
     }
@@ -26,7 +29,7 @@ router.get('/:id/is_online', tryCatch(
 
 router.post('/:id/recording_status', tryCatch(
     async (request, response) => {
-        const camera = new Camera(request.params.id)
+        const camera = await cameraController.get(request.params.id)
         const isRecording = await camera.switchRecording(request.body.record)
         response.status(200).json({isRecording: isRecording})
     })
@@ -46,8 +49,7 @@ router.post('/', async (request, response, next) => {
 
 router.post('/:id/connection_status/', async (request, response, next) => {
     try {
-        const camera = new Camera(request.params.id)
-        await camera.load()
+        await cameraController.get(request.params.id)
         let status = {
             camera: request.params.id,
             message: request.body.message,
@@ -70,8 +72,7 @@ router.post('/:id/connection_status/', async (request, response, next) => {
 
 router.patch('/:id', async (request, response, next) => {
     try {
-        const oldCamera = new Camera(request.params.id)
-        await oldCamera.load()
+        const oldCamera = await cameraController.get(request.params.id)
         const newCamera = new Camera(request.params.id)
         newCamera.setValues(request.body)
         if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
@@ -89,8 +90,7 @@ router.patch('/:id', async (request, response, next) => {
 
 router.delete('/:id', tryCatch(
     async (request, response) => {
-        const camera = new Camera(request.params.id)
-        await camera.load()
+        const camera = await cameraController.get(request.params.id)
         await camera.delete()
         response.status(204).send()
     })
@@ -106,7 +106,6 @@ router.get('/:id', tryCatch(
 
 router.get('/snapshot/:id', async (request, response, next) => {
     try {
-        console.log('Request:', request.params)
         let nodeIp = await getNodeIp(request.params.id)
         let nodeResponse = await requestToNode(nodeIp, 'get_snapshot_url', request.params.id)
         let cameraResponse = await fetch(nodeResponse.result)
@@ -135,8 +134,8 @@ router.get('/node/:id', tryCatch(
 
 router.get('/', tryCatch(
     async (_, response) => {
-        let result = await dao.getAllCameras()
-        response.status(200).json(result)
+        const cameras = await cameraController.getAll()
+        response.status(200).json(cameras.map(camera => camera.toJSON()))
     })
 )
 
