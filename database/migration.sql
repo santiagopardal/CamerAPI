@@ -1,8 +1,4 @@
 BEGIN;
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (1, 0, 0.5);
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (2, 0, 0.5);
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (3, 0, 0.5);
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (4, 0, 0.5);
 
 INSERT INTO
     camera (id, name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node)
@@ -23,4 +19,9 @@ INSERT INTO
     camera (id, name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node)
 VALUES
     (4, 'Front Yard 2', 'FI89182', '192.168.0.133', NULL, 80, 'admin', '*{-4s#aG*_>2', 640, 480, 15, 1);
+
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (1, 0, 0.5);
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (2, 0, 0.5);
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (3, 0, 0.5);
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (4, 0, 0.5);
 COMMIT;
