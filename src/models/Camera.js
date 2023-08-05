@@ -51,11 +51,13 @@ class Camera {
         const json = this.toJSON()
         delete json.configurations
         const promise = this.id ? dao.updateCamera(this.id, json) : dao.createCamera(json)
-        await promise
+        const result = await promise
+        this.id = this.id ? this.id : result.pop()
         await this.configurations.save()
     }
 
     async delete() {
+        await this.configurations.delete()
         await dao.deleteCamera(this.id)
     }
 

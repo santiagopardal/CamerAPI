@@ -41,6 +41,7 @@ router.post('/', async (request, response, next) => {
         await camera.save()
         response.status(201).json(request.body)
     } catch (error) {
+        console.log(error)
         error = handleError(error, ERROR_MESSAGES)
         next(error)
     }

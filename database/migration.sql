@@ -1,8 +1,8 @@
 BEGIN;
-INSERT INTO cameraConfigurations (cameraId, recording, sensitivity) VALUES (1, 0, 0.5);
-INSERT INTO cameraConfigurations (cameraId, recording, sensitivity) VALUES (2, 0, 0.5);
-INSERT INTO cameraConfigurations (cameraId, recording, sensitivity) VALUES (3, 0, 0.5);
-INSERT INTO cameraConfigurations (cameraId, recording, sensitivity) VALUES (4, 0, 0.5);
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (1, 0, 0.5);
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (2, 0, 0.5);
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (3, 0, 0.5);
+INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (4, 0, 0.5);
 
 INSERT INTO
     camera (id, name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node)

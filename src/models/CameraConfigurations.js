@@ -1,4 +1,4 @@
-const {create, getConfigurations, update} = require('../dao/camera_configurations_dao')
+const {create, getConfigurations, update, deleteConfigurations} = require('../dao/camera_configurations_dao')
 
 class CameraConfigurations {
     constructor(camera) {
@@ -23,16 +23,21 @@ class CameraConfigurations {
     async save() {
         let promise
         const exists = await this.exists()
+        console.log("exists:", exists)
         if (!exists)
             promise = create(this.camera.id, this.toJSON())
         else
             promise = update(this.toJSON())
-        await promise
+        console.log("Result:", await promise)
+    }
+
+    async delete() {
+        await deleteConfigurations(this.camera.id)
     }
 
     toJSON() {
         return {
-            cameraId: this.camera.id,
+            camera: this.camera.id,
             recording: this.isRecording,
             sensitivity: this.sensitivity
         }
