@@ -84,7 +84,7 @@ router.put('/:date/', async (request, response, next) => {
                 request.camera,
                 request.params.date
             )
-            dao.markVideoAsLocallyStored(old_path, newPath)
+            await dao.markVideoAsLocallyStored(old_path, newPath)
             response.status(201).send()
         } else {
             await videoHandler.saveFilePart(part, chunk, filename, request.camera, request.params.date)
