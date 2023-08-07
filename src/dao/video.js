@@ -8,6 +8,7 @@ const DATE = 'date'
 const ID = 'id'
 const IS_TEMPORAL = 'is_temporal'
 const NODE = 'node'
+const IS_IN_NODE = 'is_in_node'
 
 function logVideo(video) {
     return knex(VIDEOS_TABLE).insert(video)
@@ -21,6 +22,7 @@ function getAllFinalVideos(cameraId) {
         .select(PATH)
         .select(DATE)
         .select(NODE)
+        .select(IS_IN_NODE)
 }
 
 async function getFinalVideosBetweenDates(cameraId, startingDate, endingDate) {
@@ -34,14 +36,13 @@ async function getFinalVideoPath(camera, date) {
         .where(`${VIDEOS_TABLE}.${DATE}`, date)
         .where(IS_TEMPORAL, 0)
         .select(PATH)
-        .select(NODE)
     return videos ? videos[0].path : null
 }
 
 function markVideoAsLocallyStored(old_path, new_path) {
     return knex(VIDEOS_TABLE)
         .where('path', old_path)
-        .update({ 'path': new_path, 'node': null })
+        .update({ 'path': new_path, 'node': 1 })
 }
 
 async function getVideo(id) {
@@ -52,6 +53,7 @@ async function getVideo(id) {
         .select(DATE)
         .select(CAMERA)
         .select(NODE)
+        .select(IS_IN_NODE)
 }
 
 function getAllTemporalVideos(camera) {
@@ -62,6 +64,7 @@ function getAllTemporalVideos(camera) {
         .select(PATH)
         .select(DATE)
         .select(NODE)
+        .select(IS_IN_NODE)
         .orderBy(PATH, 'asc')
 }
 
@@ -73,6 +76,7 @@ function getAllTemporalVideosInDate(camera, date) {
         .select(ID)
         .select(PATH)
         .select(NODE)
+        .select(IS_IN_NODE)
         .orderBy(PATH, 'asc')
 }
 

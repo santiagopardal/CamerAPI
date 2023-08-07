@@ -50,7 +50,8 @@ router.post('/:date/', async (request, response, next) => {
             date: request.params.date,
             camera: request.camera,
             is_temporal: false,
-            node: request.headers.node_id
+            node: request.headers.node_id,
+            is_in_node: true
         }
         await dao.logVideo(video)
         response.status(201).json(video)

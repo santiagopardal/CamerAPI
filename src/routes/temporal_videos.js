@@ -103,7 +103,8 @@ router.post('/:date/', async (request, response, next) => {
             path: request.body.path,
             date: request.params.date,
             camera: request.camera,
-            node: request.headers.node_id
+            node: request.headers.node_id,
+            is_in_node: true
         }
         await dao.logVideo(video)
         response.status(201).json(video)
@@ -117,7 +118,7 @@ router.delete('/:id', tryCatch(
     async (request, response) => {
         const video = await validateVideoExists(request.params.id)
 
-        if (video.node_id === 1) {
+        if (!video.is_in_node) {
             videoHandler.deleteVideo(video.path)
         }
         await dao.deleteVideo(request.params.id)
