@@ -104,3 +104,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+temporal_videos/*
+*DS_Store
+*.db

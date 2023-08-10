@@ -1,57 +1,112 @@
 const router = require('express').Router()
-const db = require('../database/temporal_video')
-const { validateCameraID } = require('../routes/cameras')
-const { handleError } = require('../database/database_error')
-const { saveFilePart } = require('../video_handler')
+const { validateNode } = require('../dao/node_dao')
+const dao = require('../dao/video')
+const { handleError } = require('../dao/database_error')
+const videoHandler = require('../video_handler')
+const tryCatch = require('../controllers/tryCatch')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
 }
 
-router.get('/:camera/', async (request, response, next) => {
-    try {
-        await validateCameraID(request.params.camera)
-        let videos = await db.getAllVideos(request.params.camera)
-        response.status(200).json(videos)
-    } catch (e) {
-        next(e)
-    }
-})
+async function validateVideoExists(id) {
+    let video = await dao.getVideo(id)
 
-router.get('/:camera/:date', async (request, response, next) => {
-    try {
-        await validateCameraID(request.params.camera)
-        let videos = await db.getAllVideosInDate(request.params.camera, request.params.date)
-        videos = videos.map(video => video.path)
-        response.status(200).json(videos)
-    } catch (e) {
-        next(e)
+    if (!video) {
+        const error = Error('There is no video with such id')
+        error.status = 404
+        throw error
     }
-})
+    video = video[0]
 
-router.put('/:camera/:date/', async (request, response, next) => {
-    try {
-        await saveFilePart(request.body.chunk, request.body.filename, request.params.camera, request.params.date)
-        if (parseInt(request.body.part) === parseInt(request.body.parts) - 1) {
-            //await uploadCompleted(request.body.filename, parseInt(request.body.parts))
+    return video
+}
+
+router.get('/:id/stream/', tryCatch(
+    async function(request, response) {
+        const video = await validateVideoExists(request.params.id)
+        const path = video.path
+        const fileSize = videoHandler.getFileSize(path)
+        const range = request.headers.range
+        let options = null
+        let head
+        let statusCode
+
+        if (range) {
+            const parts = range.replace(/bytes=/, '').split('-')
+            const start = parseInt(parts[0], 10)
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1
+            const chunkSize = end - start + 1
+
+            statusCode = 206
+            head = {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunkSize,
+                'Content-Type': 'video/mp4'
+            }
+            options = {start, end}
+        } else {
+            statusCode = 200
+            head = { 'Content-Length': fileSize,  'Content-Type': 'video/mp4' }
         }
-        response.status(201).send()
+
+        const readStream = videoHandler.createReadStream(path, options)
+        response.writeHead(statusCode, head);
+        readStream.pipe(response);
+    })
+)
+
+router.get('/', tryCatch(
+    async (request, response) => {
+        let videos = await dao.getAllTemporalVideos(request.camera)
+        response.status(200).json(videos)
+    })
+)
+
+router.get('/:date', tryCatch(
+    async (request, response) => {
+        let videos = await dao.getAllTemporalVideosInDate(request.camera, request.params.date)
+        response.status(200).json(videos)
+    })
+)
+
+router.put('/:date/', async (request, response, next) => {
+    try {
+        let { part, parts, chunk, filename, old_path, upload_complete } = request.body
+        part = parseInt(part)
+        parts = parseInt(parts)
+        upload_complete = upload_complete === 'True'
+        if (upload_complete) {
+            const newPath = await videoHandler.createVideosFromParts(
+                parts,
+                filename,
+                request.camera,
+                request.params.date
+            )
+            await dao.markVideoAsLocallyStored(old_path, newPath)
+            response.status(201).send()
+        } else {
+            await videoHandler.saveFilePart(part, chunk, filename, request.camera, request.params.date)
+            response.status(200).send()
+        }
     } catch (e) {
-        console.log(e)
         let error = handleError(e, ERROR_MESSAGES)
         next(error)
     }
 })
 
-router.post('/:camera/:date/', async (request, response, next) => {
+router.post('/:date/', async (request, response, next) => {
     try {
-        await validateCameraID(request.params.camera)
+        await validateNode(request.headers.node_id)
         const video = {
-            path: request.query.path,
+            path: request.body.path,
             date: request.params.date,
-            camera: request.params.camera
+            camera: request.camera,
+            node: request.headers.node_id,
+            is_in_node: true
         }
-        await db.logVideo(video)
+        await dao.logVideo(video)
         response.status(201).json(video)
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
@@ -59,14 +114,24 @@ router.post('/:camera/:date/', async (request, response, next) => {
     }
 })
 
-router.delete('/:camera/:date', async (request, response, next) => {
-    try {
-        await validateCameraID(request.params.camera)
-        await db.deleteAllVideosInDate(request.params.camera, request.params.date)
+router.delete('/:id', tryCatch(
+    async (request, response) => {
+        const video = await validateVideoExists(request.params.id)
+
+        if (!video.is_in_node) {
+            videoHandler.deleteVideo(video.path)
+        }
+        await dao.deleteVideo(request.params.id)
         response.status(204).send()
-    } catch (e) {
-        next(e)
-    }
-})
+    })
+)
+
+
+router.delete('/:date', tryCatch(
+    async (request, response) => {
+        await dao.deleteAllTemporalVideosInDate(request.camera, request.params.date)
+        response.status(204).send()
+    })
+)
 
 module.exports = router
