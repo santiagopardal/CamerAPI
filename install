@@ -1,5 +1,8 @@
 mkdir temporal_videos
 
+sudo apt-get update && sudo apt-get install sqlite3
+sqlite3 camerai.db < ./database/camerapi.sql
+
 if [ ! -f ./.env ]; then
     echo CAMERAI_IMAGES=/Images >> ./.env
     echo DATABASE=/app/camerai.db >> ./.env
