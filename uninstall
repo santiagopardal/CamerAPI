@@ -1,3 +1,3 @@
-sudo rm camerai.db
+sudo rm ./APP-Database/camerai.db
 sudo rm -rf temporal_videos
 sudo rm -rf temp
