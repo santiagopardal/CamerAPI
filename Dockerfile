@@ -4,6 +4,6 @@ WORKDIR /app
 COPY . .
 RUN npm install --production
 
-RUN mkdir /app/temp
+RUN mkdir -p /app/temp
 
 CMD ["npm", "start"]

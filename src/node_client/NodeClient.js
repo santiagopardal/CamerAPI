@@ -44,7 +44,6 @@ async function requestToNode(nodeIp, method, args) {
                 client.on('close', () => console.log('Closed connection'))
                 client.on('error', error => reject(error))
             } catch (error) {
-                console.log(`Error communicating with node: ${error}`)
                 reject(error)
             }
         }

@@ -41,7 +41,6 @@ router.post('/', async (request, response, next) => {
         await camera.save()
         response.status(201).json(request.body)
     } catch (error) {
-        console.log(error)
         error = handleError(error, ERROR_MESSAGES)
         next(error)
     }
@@ -82,7 +81,6 @@ router.patch('/:id', async (request, response, next) => {
         await newCamera.save()
         response.status(200).json(newCamera.toJSON())
     } catch (error) {
-        console.log(error)
         error = handleError(error, ERROR_MESSAGES)
         next(error)
     }
