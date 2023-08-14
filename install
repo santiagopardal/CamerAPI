@@ -1,5 +1,4 @@
 mkdir -p temporal_videos
-mkdir -p APP-Database
 
 if [ ! -f ./.env ]; then
     echo CAMERAI_IMAGES=/Images >> ./.env
