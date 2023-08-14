@@ -1,7 +1,6 @@
 node_modules
 build
 src/camerai.db
-.env
 *camerai.db*
 APP-Database/camerai.db
 APP-Database
