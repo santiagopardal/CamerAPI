@@ -2,6 +2,6 @@ mkdir -p temporal_videos
 
 if [ ! -f ./.env ]; then
     echo CAMERAI_IMAGES=/Images >> ./.env
-    echo DATABASE=/app/APP-Database/camerai.db >> ./.env
+    echo DATABASE=/app/camerai.db >> ./.env
     echo TEMPORAL_VIDEOS=/app/temporal_videos >> ./.env
 fi
