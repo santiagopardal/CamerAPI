@@ -39,9 +39,14 @@ router.post('/', async (request, response, next) => {
         const camera = new Camera()
         await camera.setValues(request.body)
         await camera.save()
+        try {
+            const nodeIp = await getNodeIp(camera.node)
+            await requestToNode(nodeIp, 'add_camera', camera.toJSON())
+        } catch (err) {
+            console.log("Couldn't connect to node:", err)
+        }
         response.status(201).json(request.body)
     } catch (error) {
-        console.log(error)
         error = handleError(error, ERROR_MESSAGES)
         next(error)
     }
@@ -82,7 +87,6 @@ router.patch('/:id', async (request, response, next) => {
         await newCamera.save()
         response.status(200).json(newCamera.toJSON())
     } catch (error) {
-        console.log(error)
         error = handleError(error, ERROR_MESSAGES)
         next(error)
     }
@@ -91,7 +95,13 @@ router.patch('/:id', async (request, response, next) => {
 router.delete('/:id', tryCatch(
     async (request, response) => {
         const camera = await cameraController.get(request.params.id)
+        const nodeIp = await getNodeIp(camera.node)
         await camera.delete()
+        try {
+            await requestToNode(nodeIp, 'remove_camera', request.params.id)
+        } catch (err) {
+            console.log("Couldn't connect to node:", err)
+        }
         response.status(204).send()
     })
 )

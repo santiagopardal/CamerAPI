@@ -23,12 +23,11 @@ class CameraConfigurations {
     async save() {
         let promise
         const exists = await this.exists()
-        console.log("exists:", exists)
         if (!exists)
             promise = create(this.camera.id, this.toJSON())
         else
             promise = update(this.toJSON())
-        console.log("Result:", await promise)
+        await promise
     }
 
     async delete() {

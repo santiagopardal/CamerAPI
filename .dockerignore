@@ -1,0 +1,4 @@
+node_modules
+build
+src/camerai.db
+*camerai.db*
