@@ -6,7 +6,7 @@ COPY . .
 
 RUN npm install --production
 
-RUN apt-get update && apt-get install sqlite3
+RUN apk update && apk upgrade && apk install sqlite
 RUN sqlite3 camerai.db < ./database/camerapi.sql
 
 RUN mkdir -p /camerapi/temp
