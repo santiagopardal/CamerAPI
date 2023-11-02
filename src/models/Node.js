@@ -33,8 +33,7 @@ class Node {
     }
 
     async getCameras() {
-        const camerasJSON = await CameraDAO.getInNode(this.id)
-        return await getCamerasFromJSON(camerasJSON)
+        return await CameraDAO.getInNode(this.id)
     }
 
     toJSON() {

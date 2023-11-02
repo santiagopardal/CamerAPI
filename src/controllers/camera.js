@@ -131,5 +131,6 @@ module.exports = {
     switchRecording,
     updateConnectionStatus,
     getSnapshot,
-    validateCameraID
+    validateCameraID,
+    getNodeIp
 }
