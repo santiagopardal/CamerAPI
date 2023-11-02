@@ -7,7 +7,7 @@ function toBytes(number) {
     let byteArray = [0, 0, 0, 0, 0, 0, 0, 0];
 
     for (let index = 0; index < byteArray.length; index ++ ) {
-        let byte = number & 0xff;
+        const byte = number & 0xff;
         byteArray [ index ] = byte;
         number = (number - byte) / 256 ;
     }
@@ -16,12 +16,12 @@ function toBytes(number) {
 }
 
 function packMessage(arguments) {
-    let textEncoder = new TextEncoder()
-    let stringifiedArguments = JSON.stringify(arguments)
-    let nodeRequest = textEncoder.encode(stringifiedArguments)
-    let stringifiedArgumentsSize = toBytes(stringifiedArguments.length)
-    let buffer = new ArrayBuffer(9 + stringifiedArguments.length)
-    let message = new Int8Array(buffer)
+    const textEncoder = new TextEncoder()
+    const stringifiedArguments = JSON.stringify(arguments)
+    const nodeRequest = textEncoder.encode(stringifiedArguments)
+    const stringifiedArgumentsSize = toBytes(stringifiedArguments.length)
+    const buffer = new ArrayBuffer(9 + stringifiedArguments.length)
+    const message = new Int8Array(buffer)
 
     message[0] = NODE_REQUEST_BYTES
     message.set(stringifiedArgumentsSize, 1)
@@ -33,14 +33,14 @@ function packMessage(arguments) {
 }
 
 async function requestToNode(nodeIp, method, args) {
-    let methodArgs = { method: method, args: args}
+    const methodArgs = { method: method, args: args}
     return new Promise(
         (resolve, reject) => {
             try {
-                let message = packMessage(methodArgs)
-                let client = new Socket()
+                const message = packMessage(methodArgs)
+                const client = new Socket()
                 client.connect({host: nodeIp, port: NODE_PORT}, () => client.write(Buffer.from(message)))
-                client.on('data', data => {data = data.subarray(9); resolve(JSON.parse(data));})
+                client.on('data', data => { data = data.subarray(9); resolve(JSON.parse(data)); })
                 client.on('close', () => console.log('Closed connection'))
                 client.on('error', error => reject(error))
             } catch (error) {
