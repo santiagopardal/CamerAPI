@@ -4,7 +4,7 @@ const temporal_videos = require('./temporal_videos')
 const Node = require('../models/Node')
 const { handleError } = require('../dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
-const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot, validateCameraID } = require('../logic/camera')
+const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot, validateCameraID } = require('../controllers/camera')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'

@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const tryCatch = require('../controllers/tryCatch')
-const { createNode, getNodeCameras, deleteNode, getNode, getAll, nodeExists } = require('../logic/node')
+const { createNode, getNodeCameras, deleteNode, getNode, getAll, nodeExists } = require('../controllers/node')
 
 router.post('/', tryCatch(
     async (request, response) => {

@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const { updateNodeLastRequest } = require('../logic/node')
+const { updateNodeLastRequest } = require('../controllers/node')
 
 app.use(async (request, response, next) => {
     try {
