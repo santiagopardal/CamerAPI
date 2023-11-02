@@ -1,5 +1,4 @@
 const router = require('express').Router()
-const dao = require('../dao/node_dao')
 const tryCatch = require('../controllers/tryCatch')
 const { createNode, getNodeCameras, deleteNode, getNode, getAll, nodeExists } = require('../logic/node')
 
