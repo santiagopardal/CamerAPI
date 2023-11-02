@@ -28,6 +28,10 @@ class Node {
         await NodeDao.saveNode(this.toJSON())
     }
 
+    async delete() {
+        await NodeDao.deleteNode(this.id)
+    }
+
     async getCameras() {
         const camerasJSON = await CameraDAO.getInNode(this.id)
         return await getCamerasFromJSON(camerasJSON)

@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const dao = require('../dao/node_dao')
 const tryCatch = require('../controllers/tryCatch')
-const Node = require('../models/Node')
+const { createNode, getNodeCameras, deleteNode, getNode, getAll, nodeExists } = require('../logic/node')
 
 router.post('/', tryCatch(
     async (request, response) => {
@@ -12,17 +12,12 @@ router.post('/', tryCatch(
                 ip: request.headers['x-forwarded-for'] || request.socket.remoteAddress,
                 port: request.body.port,
             }
-            node = await dao.getNode(nodeData)
-            if (!node) {
-                let date = new Date()
-                nodeData.last_request = `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}@${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-                await dao.saveNode(nodeData)
-                delete nodeData.last_request
-                node = await dao.getNode(nodeData)
+            if (!nodeExists(nodeData)) {
+                node = await createNode(nodeData)
                 statusCode = 201
             }
         } else {
-            node = await dao.getNode({id: parseInt(request.headers.node_id)})
+            node = await getNode(parseInt(request.headers.node_id))
         }
         response.status(statusCode).json(node)
     })
@@ -30,31 +25,27 @@ router.post('/', tryCatch(
 
 router.get('/:id', tryCatch(
     async (request, response) => {
-        let result = await dao.validateNode(request.params.id)
-        response.status(200).json(result)
+        const node = await getNode(request.params.id)
+        response.status(200).json(node.toJSON())
     })
 )
 
 router.delete('/:id', tryCatch(
     async (request, response) => {
-        await dao.validateNode(request.params.id)
-        await dao.deleteNode(request.params.id)
+        await deleteNode(request.params.id)
         response.status(200).send()
     })
 )
 
 router.get('/:id/cameras', tryCatch(
     async (request, response) => {
-        const node = new Node(request.params.id)
-        await node.load()
-        response.status(200).json(await node.getCameras())
+        response.status(200).json(await getNodeCameras(request.params.id))
     }
 ))
 
 router.get('/', tryCatch(
     async (_, response) => {
-        let result = await dao.getNodes()
-        response.status(200).json(result)
+        response.status(200).json(await getAll())
     })
 )
 
