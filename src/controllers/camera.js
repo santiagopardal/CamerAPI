@@ -1,10 +1,10 @@
-import Camera from '../models/Camera'
-import CameraDAO from '../dao/camera'
-import requestToNode from '../node_client/NodeClient'
-import {validateNode} from '../dao/node_dao'
-import ip from 'ip'
-import dao from '../dao/camera'
-import connection_dao from '../dao/connection_dao'
+const Camera = require('../models/Camera')
+const CameraDAO = require('../dao/camera')
+const requestToNode = require('../node_client/NodeClient')
+const { validateNode } = require('../dao/node_dao')
+const ip = require('ip')
+const dao = require('../dao/camera')
+const connection_dao = require('../dao/connection_dao')
 
 const validateCameraID = async (id) => {
     const cam = await dao.getCamera(id)

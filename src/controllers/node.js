@@ -1,5 +1,5 @@
-import dao from '../dao/node_dao'
-import Node from '../models/Node'
+const dao = require('../dao/node_dao')
+const Node = require('../models/Node')
 
 const node_dao = require('../dao/node_dao')
 
