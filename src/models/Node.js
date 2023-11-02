@@ -1,6 +1,5 @@
 const NodeDao = require('../dao/node_dao')
 const CameraDAO = require('../dao/camera')
-const {getCamerasFromJSON} = require('../utils/cameras')
 
 class Node {
 
