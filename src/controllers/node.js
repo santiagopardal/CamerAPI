@@ -46,7 +46,7 @@ const getNodeCameras = async (nodeId) => {
     return await node.getCameras()
 }
 
-export {
+module.exports = {
     createNode,
     getNode,
     getAll,

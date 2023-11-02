@@ -121,7 +121,7 @@ const getSnapshot = async (cameraId) => {
     return await fetch(nodeResponse.result)
 }
 
-export {
+module.exports = {
     createNew,
     getCamera,
     edit,
