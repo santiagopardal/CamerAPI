@@ -1,5 +1,5 @@
 const knex = require('./knex')
-const { NODES_TABLE } = require('../constants')
+const { NODES_TABLE } = require('../../constants')
 
 const ID = 'id'
 const IP = 'ip'

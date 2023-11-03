@@ -1,7 +1,7 @@
-const dao = require('../dao/node_dao')
+const dao = require('../models/dao/node_dao')
 const Node = require('../models/Node')
 
-const node_dao = require('../dao/node_dao')
+const node_dao = require('../models/dao/node_dao')
 
 const createNode = async (nodeData) => {
     const date = new Date()

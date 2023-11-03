@@ -1,5 +1,5 @@
-const NodeDao = require('../dao/node_dao')
-const CameraDAO = require('../dao/camera')
+const NodeDao = require('./dao/node_dao')
+const CameraDAO = require('./dao/camera')
 
 class Node {
 

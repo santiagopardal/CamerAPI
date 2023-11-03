@@ -1,4 +1,4 @@
-const dao = require('../dao/camera')
+const dao = require('./dao/camera')
 const { getNodeIp } = require('../controllers/CameraController')
 const requestToNode = require('../node_client/NodeClient')
 const CameraConfigurations = require('./CameraConfigurations')

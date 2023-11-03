@@ -1,10 +1,10 @@
 const Camera = require('../models/Camera')
-const CameraDAO = require('../dao/camera')
+const CameraDAO = require('../models/dao/camera')
 const requestToNode = require('../node_client/NodeClient')
-const { validateNode } = require('../dao/node_dao')
+const { validateNode } = require('../models/dao/node_dao')
 const ip = require('ip')
-const dao = require('../dao/camera')
-const connection_dao = require('../dao/connection_dao')
+const dao = require('../models/dao/camera')
+const connection_dao = require('../models/dao/connection_dao')
 
 const validateCameraID = async (id) => {
     const cam = await dao.getCamera(id)

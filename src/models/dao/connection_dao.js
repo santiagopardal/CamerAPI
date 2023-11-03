@@ -1,5 +1,5 @@
 const knex = require('./knex')
-const { CONNECTION_TABLE } = require('../constants')
+const { CONNECTION_TABLE } = require('../../constants')
 
 
 function logStatus(status) {

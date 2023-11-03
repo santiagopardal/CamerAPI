@@ -1,6 +1,6 @@
 const knex = require('./knex')
 const moment = require('moment')
-const { VIDEOS_TABLE } = require('../constants')
+const { VIDEOS_TABLE } = require('../../constants')
 
 const CAMERA = 'camera'
 const PATH = 'path'

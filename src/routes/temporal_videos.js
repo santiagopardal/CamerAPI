@@ -1,7 +1,7 @@
 const router = require('express').Router()
-const { validateNode } = require('../dao/node_dao')
-const dao = require('../dao/video')
-const { handleError } = require('../dao/database_error')
+const { validateNode } = require('../models/dao/node_dao')
+const dao = require('../models/dao/video')
+const { handleError } = require('../models/dao/database_error')
 const videoHandler = require('../video_handler')
 const tryCatch = require('../controllers/tryCatch')
 

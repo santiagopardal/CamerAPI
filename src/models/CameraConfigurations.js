@@ -1,4 +1,4 @@
-const {create, getConfigurations, update, deleteConfigurations} = require('../dao/camera_configurations_dao')
+const {create, getConfigurations, update, deleteConfigurations} = require('./dao/camera_configurations_dao')
 
 class CameraConfigurations {
     constructor(camera) {

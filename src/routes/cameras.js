@@ -2,7 +2,7 @@ const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
 const Node = require('../models/Node')
-const { handleError } = require('../dao/database_error')
+const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
 const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot, validateCameraID } = require('../controllers/CameraController')
 
