@@ -1,22 +1,7 @@
 const Camera = require('../models/Camera')
 const CameraDAO = require('../models/dao/camera')
-const requestToNode = require('../node_client/NodeClient')
-const { validateNode } = require('../models/dao/node_dao')
-const ip = require('ip')
-const dao = require('../models/dao/camera')
 const connection_dao = require('../models/dao/connection_dao')
-const Node = require('./Node')
-
-const getNodeIp = async (cameraId) => {
-    const camera = await getCamera(cameraId)
-    const node = await validateNode(camera.node)
-    let nodeIp = node.ip
-    // TODO Fix this, try to resolve and it resolves to localhost, then it is.
-    if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
-        nodeIp = ip.address()
-
-    return nodeIp
-}
+const Node = require('../models/Node')
 
 const getCamerasFromJSON = async (camerasAsJSON) => {
     const promises = []
@@ -36,7 +21,7 @@ const createNew = async (data) => {
     await camera.setValues(data)
     await camera.save()
     try {
-        const node = new Node(camera.node)
+        const node = await camera.getNode()
         await node.request('add_camera', camera.toJSON())
     } catch (err) {
         console.log("Couldn't connect to node:", err)
@@ -48,7 +33,7 @@ const edit = async (cameraId, newData) => {
     const newCamera = new Camera(cameraId)
     await newCamera.setValues(newData)
     if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
-        const node = new Node(newCamera.node)
+        const node = await newCamera.getNode()
         await node.request('update_sensitivity', {camera_id: newCamera.id, sensitivity: newCamera.configurations.sensitivity})
     }
     await newCamera.save()
@@ -57,7 +42,7 @@ const edit = async (cameraId, newData) => {
 
 const deleteCamera = async (cameraId) => {
     const camera = await getCamera(cameraId)
-    const node = new Node(camera.node)
+    const node = await camera.getNode()
     await camera.delete()
     try {
         await node.request('remove_camera', cameraId)
@@ -119,6 +104,5 @@ module.exports = {
     isOnline,
     switchRecording,
     updateConnectionStatus,
-    getSnapshot,
-    getNodeIp
+    getSnapshot
 }

@@ -73,6 +73,12 @@ class Camera {
         return nodeResponse.result[this.id]
     }
 
+    async getNode() {
+        const node = new Node(this.node)
+        await node.load()
+        return node
+    }
+
     async getSnapshot() {
         const node = new Node(this.node)
         const nodeResponse = await node.request('get_snapshot_url', this.id)
