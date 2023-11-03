@@ -1,5 +1,7 @@
 const NodeDao = require('./dao/node_dao')
 const CameraDAO = require('./dao/camera')
+const ip = require('ip')
+const requestToNode = require('../node_client/NodeClient')
 
 class Node {
 
@@ -33,6 +35,19 @@ class Node {
 
     async getCameras() {
         return await CameraDAO.getInNode(this.id)
+    }
+
+    getIp() {
+        let nodeIp = this.ip
+        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
+        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(nodeIp))
+            nodeIp = ip.address()
+
+        return nodeIp
+    }
+
+    async request(method, args) {
+        return await requestToNode(this.getIp(), method, args)
     }
 
     toJSON() {

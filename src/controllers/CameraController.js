@@ -5,22 +5,11 @@ const { validateNode } = require('../models/dao/node_dao')
 const ip = require('ip')
 const dao = require('../models/dao/camera')
 const connection_dao = require('../models/dao/connection_dao')
-
-const validateCameraID = async (id) => {
-    const cam = await dao.getCamera(id)
-
-    if (!cam) {
-        const error = Error('There is no camera with such id')
-        error.status = 404
-        throw error
-    }
-
-    return cam
-}
+const Node = require('./Node')
 
 const getNodeIp = async (cameraId) => {
-    let { node } = await validateCameraID(cameraId)
-    node = await validateNode(node)
+    const camera = await getCamera(cameraId)
+    const node = await validateNode(camera.node)
     let nodeIp = node.ip
     // TODO Fix this, try to resolve and it resolves to localhost, then it is.
     if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(node.ip))
@@ -47,31 +36,31 @@ const createNew = async (data) => {
     await camera.setValues(data)
     await camera.save()
     try {
-        const nodeIp = await getNodeIp(camera.node)
-        await requestToNode(nodeIp, 'add_camera', camera.toJSON())
+        const node = new Node(camera.node)
+        await node.request('add_camera', camera.toJSON())
     } catch (err) {
         console.log("Couldn't connect to node:", err)
     }
 }
 
 const edit = async (cameraId, newData) => {
-    const oldCamera = getCamera(cameraId)
+    const oldCamera = await getCamera(cameraId)
     const newCamera = new Camera(cameraId)
     await newCamera.setValues(newData)
     if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
-        const node = getNodeIp(newCamera.id)
-        await requestToNode(node.ip, 'update_sensitivity', {camera_id: newCamera.id, sensitivity: newCamera.configurations.sensitivity})
+        const node = new Node(newCamera.node)
+        await node.request('update_sensitivity', {camera_id: newCamera.id, sensitivity: newCamera.configurations.sensitivity})
     }
     await newCamera.save()
     return newCamera
 }
 
 const deleteCamera = async (cameraId) => {
-    const camera = getCamera(cameraId)
-    const nodeIp = await getNodeIp(camera.node)
+    const camera = await getCamera(cameraId)
+    const node = new Node(camera.node)
     await camera.delete()
     try {
-        await requestToNode(nodeIp, 'remove_camera', cameraId)
+        await node.request('remove_camera', cameraId)
     } catch (err) {
         console.log("Couldn't connect to node:", err)
     }
@@ -116,9 +105,9 @@ const updateConnectionStatus = async (cameraId, message, date) => {
 }
 
 const getSnapshot = async (cameraId) => {
-    const nodeIp = await getNodeIp(cameraId)
-    const nodeResponse = await requestToNode(nodeIp, 'get_snapshot_url', cameraId)
-    return await fetch(nodeResponse.result)
+    const camera = new Camera(cameraId)
+    await camera.load()
+    return await camera.getSnapshot()
 }
 
 module.exports = {
@@ -131,6 +120,5 @@ module.exports = {
     switchRecording,
     updateConnectionStatus,
     getSnapshot,
-    validateCameraID,
     getNodeIp
 }

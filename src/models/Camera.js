@@ -1,7 +1,6 @@
 const dao = require('./dao/camera')
-const { getNodeIp } = require('../controllers/CameraController')
-const requestToNode = require('../node_client/NodeClient')
 const CameraConfigurations = require('./CameraConfigurations')
+const Node = require('./Node')
 
 class Camera {
     constructor(id) {
@@ -67,11 +66,17 @@ class Camera {
     }
 
     async switchRecording(record) {
-        const nodeIp = await getNodeIp(this.id)
+        const node = new Node(this.node)
         const method = record ? 'record' : 'stop_recording'
         const args = [this.id]
-        const nodeResponse = await requestToNode(nodeIp, method, args)
+        const nodeResponse = await node.request(method, args)
         return nodeResponse.result[this.id]
+    }
+
+    async getSnapshot() {
+        const node = new Node(this.node)
+        const nodeResponse = await node.request('get_snapshot_url', this.id)
+        return await fetch(nodeResponse.result)
     }
 
     toJSON() {

@@ -4,7 +4,7 @@ const temporal_videos = require('./temporal_videos')
 const Node = require('../models/Node')
 const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
-const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot, validateCameraID } = require('../controllers/CameraController')
+const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot } = require('../controllers/CameraController')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'
@@ -101,7 +101,7 @@ router.get('/', tryCatch(
 )
 
 router.use('/:id/temporal_videos/', async (req, res, next) => {
-    await validateCameraID(req.params.id)
+    await getCamera(req.params.id)
     req.camera = req.params.id
     next()
 },
@@ -109,7 +109,7 @@ temporal_videos
 )
 
 router.use('/:id/videos/', async (req, res, next) => {
-    await validateCameraID(req.params.id)
+    await getCamera(req.params.id)
     req.camera = req.params.id
     next()
 },
