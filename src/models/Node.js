@@ -1,7 +1,7 @@
 const NodeDao = require('./dao/node_dao')
 const CameraDAO = require('./dao/camera')
 const ip = require('ip')
-const requestToNode = require('../node_client/NodeClient')
+const requestToNode = require('./NodeClient/NodeClient')
 
 class Node {
 
