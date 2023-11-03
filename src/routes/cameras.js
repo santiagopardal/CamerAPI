@@ -1,9 +1,9 @@
 const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
-const Node = require('../models/Node')
 const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
+const { getNodeCameras } = require('../controllers/NodeController')
 const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot } = require('../controllers/CameraController')
 
 const ERROR_MESSAGES = {
@@ -19,7 +19,7 @@ router.get('/:id/is_online', tryCatch(
 
 router.post('/:id/recording_status', tryCatch(
     async (request, response) => {
-        const isRecording = switchRecording(request.params.id, request.body.record)
+        const isRecording = await switchRecording(request.params.id, request.body.record)
         response.status(200).json({isRecording: isRecording})
     })
 )
@@ -87,9 +87,7 @@ router.get('/snapshot/:id', async (request, response, next) => {
 
 router.get('/node/:id', tryCatch(
     async (request, response) => {
-        const node = new Node(request.params.id)
-        await node.load()
-        response.status(200).json(await node.getCameras())
+        response.status(200).json(await getNodeCameras(request.params.id))
     })
 )
 
