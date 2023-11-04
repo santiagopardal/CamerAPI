@@ -25,7 +25,7 @@
     "knex": "^0.95.14",
     "moment": "^2.29.4",
     "morgan": "^1.10.0",
-    "sqlite3": "^5.0.2"
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.12"

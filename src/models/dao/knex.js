@@ -1,13 +1,6 @@
 const knex = require('knex')
+const options = require('../../../knexfile')
 
-const knexConnection = knex({
-    client: 'sqlite3',
-    connection: {
-        filename: './camerai.db'
-    },
-    pool: {
-        afterCreate: (conn, cb) => conn.run('PRAGMA foreign_keys = ON', cb)
-    }
-})
+const knexConnection = knex(options[process.env.NODE_ENV])
 
 module.exports = knexConnection;
