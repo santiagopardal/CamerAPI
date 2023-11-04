@@ -1,44 +1,22 @@
 const router = require('express').Router()
-const { statSync } = require('fs')
 const dao = require('../models/dao/video')
 const { handleError } = require('../models/dao/database_error')
-const fs = require("fs")
-const moment = require('moment')
 const tryCatch = require('../controllers/tryCatch')
+const { getVideo, getVideos, getVideosBetweenDatesForCamera, getFinalVideoPath } = require('../controllers/VideoController')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
 }
 
-const BYTES_TO_GIGABYTES = 1024*1024*1024
-
-function videoToObject(video) {
-    let { path, date } = video
-    let fileSize = statSync(path).size/BYTES_TO_GIGABYTES
-    fileSize = String(fileSize).substring(0, 4)
-
-    return {
-        day: date,
-        file_size: `${fileSize} GB`
-    }
-}
-
 router.get('/', tryCatch(
     async (request, response) => {
-        let videos = await dao.getAllFinalVideos(request.camera)
-        videos = videos.map(video => videoToObject(video))
-        response.status(200).json(videos)
+        response.status(200).json(await getVideos(request.camera))
     })
 )
 router.get('/from/:startingDate/to/:endingDate', tryCatch(
     async (request, response, next) => {
-        let { startingDate, endingDate } = request.params
-        startingDate = moment(startingDate, 'DD-MM-YYYY')
-        endingDate = moment(endingDate, 'DD-MM-YYYY')
-
-        let videos = await dao.getFinalVideosBetweenDates(request.camera, startingDate, endingDate)
-        videos = videos.map(video => videoToObject(video))
-
+        const { startingDate, endingDate } = request.params
+        const videos = await getVideosBetweenDatesForCamera(request.camera, startingDate, endingDate)
         response.status(200).json(videos)
     })
 )
@@ -62,38 +40,43 @@ router.post('/:date/', async (request, response, next) => {
 })
 
 router.get('/download/:date', tryCatch(
-    async (request, response, next) => {
-        const pth = await dao.getFinalVideoPath(request.camera, request.params.date)
-        if (!pth) {
-            const error = Error(`There are no videos from ${request.params.date}`)
-            error.status = 404
-            next(error)
-        }
+    async (request, response) => {
+        const pth = await getFinalVideoPath(request.camera, request.params.date)
         response.sendFile(pth)
     })
 )
 
 router.get('/stream/:date', tryCatch(
     async (request, response) => {
-        const range = request.headers.range;
-        if (!range) {
-            response.status(400).send("Requires Range header");
+        const video = await getVideo(request.camera, request.params.date)
+        const fileSize = video.getSize()
+        const range = request.headers.range
+        let options = null
+        let head
+        let statusCode
+
+        if (range) {
+            const parts = range.replace(/bytes=/, '').split('-')
+            const start = parseInt(parts[0], 10)
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1
+            const chunkSize = end - start + 1
+
+            statusCode = 206
+            head = {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunkSize,
+                'Content-Type': 'video/mp4'
+            }
+            options = {start, end}
+        } else {
+            statusCode = 200
+            head = { 'Content-Length': fileSize,  'Content-Type': 'video/mp4' }
         }
-        const videoPath = await dao.getFinalVideoPath(request.camera, request.params.date)
-        const videoSize = fs.statSync(videoPath).size;
-        const CHUNK_SIZE = 10 ** 6;
-        const start = Number(range.replace(/\D/g, ""));
-        const end = Math.min(start + CHUNK_SIZE, videoSize - 1);
-        const contentLength = end - start + 1;
-        const headers = {
-            "Content-Range": `bytes ${start}-${end}/${videoSize}`,
-            "Accept-Ranges": "bytes",
-            "Content-Length": contentLength,
-            "Content-Type": "video/mp4",
-        };
-        response.writeHead(206, headers);
-        const videoStream = fs.createReadStream(videoPath, { start, end });
-        videoStream.pipe(response);
+
+        const readStream = video.createReadStream(options)
+        response.writeHead(statusCode, head);
+        readStream.pipe(response);
     })
 )
 

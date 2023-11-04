@@ -10,7 +10,6 @@ const ERROR_MESSAGES = {
 router.get('/:id/stream/', tryCatch(
     async (request, response) => {
         const video = await getVideo(request.params.id)
-        const path = video.path
         const fileSize = video.getSize()
         const range = request.headers.range
         let options = null
@@ -36,7 +35,7 @@ router.get('/:id/stream/', tryCatch(
             head = { 'Content-Length': fileSize,  'Content-Type': 'video/mp4' }
         }
 
-        const readStream = video.createReadStream(path, options)
+        const readStream = video.createReadStream(options)
         response.writeHead(statusCode, head);
         readStream.pipe(response);
     })
