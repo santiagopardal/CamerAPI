@@ -32,7 +32,8 @@ const getAll = async () => {
 }
 
 const updateNodeLastRequest = async (nodeId, lastRequest) => {
-    await node_dao.validateNode(nodeId)
+    const node = new Node(nodeId)
+    await node.load()
     const date = new Date()
     await node_dao.update({
         id: nodeId,
