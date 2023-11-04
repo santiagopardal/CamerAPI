@@ -11,7 +11,7 @@ router.post('/', tryCatch(
                 ip: request.headers['x-forwarded-for'] || request.socket.remoteAddress,
                 port: request.body.port,
             }
-            if (!nodeExists(nodeData)) {
+            if (!await nodeExists(nodeData)) {
                 node = await createNode(nodeData)
                 statusCode = 201
             }
