@@ -1,11 +1,8 @@
-// Update with your config settings.
-
 module.exports = {
-
   development: {
-    client: 'pg',
+    client: 'postgresql',
     connection: {
-      host: 'localhost',
+      host: process.env.DB_HOST || 'localhost',
       port: 5432,
       database: 'camerapi',
       user:     'postgres',
@@ -13,12 +10,12 @@ module.exports = {
     },
     migrations: {
       directory: './migrations'
-    }
+    },
   },
-
   staging: {
     client: 'postgresql',
     connection: {
+      host: process.env.DB_HOST || 'localhost',
       database: 'camerapi',
       user:     process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'admin'
@@ -35,6 +32,7 @@ module.exports = {
   production: {
     client: 'postgresql',
     connection: {
+      host: process.env.DB_HOST || 'localhost',
       database: 'camerapi',
       user:     process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'admin'
