@@ -16,6 +16,20 @@ function videoToObject(video) {
     }
 }
 
+const registerVideo = async (camera, node, videoData) => {
+    const { path, date } = videoData
+    const video = {
+        path: path,
+        date: date,
+        camera: camera,
+        is_temporal: false,
+        node: node,
+        is_in_node: true
+    }
+    await dao.logVideo(video)
+    return video
+}
+
 const getVideo = async (camera, date) => {
     const id = await dao.getFinalVideoId(camera, date)
     const video = new Video(id)
@@ -50,5 +64,6 @@ module.exports = {
     getVideo,
     getVideos,
     getVideosBetweenDatesForCamera,
-    getFinalVideoPath
+    getFinalVideoPath,
+    registerVideo
 }

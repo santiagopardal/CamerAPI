@@ -1,8 +1,7 @@
 const router = require('express').Router()
-const dao = require('../models/dao/video')
 const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
-const { getVideo, getVideos, getVideosBetweenDatesForCamera, getFinalVideoPath } = require('../controllers/VideoController')
+const { registerVideo, getVideo, getVideos, getVideosBetweenDatesForCamera, getFinalVideoPath } = require('../controllers/VideoController')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another video with that path'
@@ -23,15 +22,8 @@ router.get('/from/:startingDate/to/:endingDate', tryCatch(
 
 router.post('/:date/', async (request, response, next) => {
     try {
-        const video = {
-            path: request.body.path,
-            date: request.params.date,
-            camera: request.camera,
-            is_temporal: false,
-            node: request.headers.node_id,
-            is_in_node: true
-        }
-        await dao.logVideo(video)
+        const videoData = { path: request.body.path, date: request.params.date }
+        const video = await registerVideo(request.camera, request.headers.node_id, videoData)
         response.status(201).json(video)
     } catch (e) {
         let error = handleError(e, ERROR_MESSAGES)
