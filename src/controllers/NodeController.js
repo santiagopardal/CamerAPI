@@ -31,10 +31,9 @@ const getAll = async () => {
     return await dao.getNodes()
 }
 
-const updateNodeLastRequest = async (nodeId, lastRequest) => {
+const updateNodeLastRequest = async (nodeId, date) => {
     const node = new Node(nodeId)
     await node.load()
-    const date = new Date()
     await node_dao.update({
         id: nodeId,
         last_request: `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}@${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
