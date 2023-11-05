@@ -11,3 +11,4 @@ Although the project has grown a lot, there are still many things to improve, so
 - [ ] Add authentication with JWT, both for nodes and users for [CamerAPP](https://github.com/santiagopardal/CamerAPP).
 - [ ] Find a way of encrypting each camera's password in the DB.
 - [ ] Create documentation for the API using Swagger.
+- [ ] Integrate with AWS S3 and other storing services.
