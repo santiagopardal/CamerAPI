@@ -15,8 +15,8 @@ module.exports = {
   staging: {
     client: 'postgresql',
     connection: {
-      host: process.env.DB_HOST || 'localhost',
-      database: 'camerapi',
+      host:     process.env.DB_HOST || 'localhost',
+      database: process.env.DB_NAME || 'camerapi',
       user:     process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'admin'
     },
@@ -32,8 +32,8 @@ module.exports = {
   production: {
     client: 'postgresql',
     connection: {
-      host: process.env.DB_HOST || 'localhost',
-      database: 'camerapi',
+      host:     process.env.DB_HOST || 'localhost',
+      database: process.env.DB_NAME || 'camerapi',
       user:     process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'admin'
     },
