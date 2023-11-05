@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/index.js",
+    "migrate": "knex migrate:latest",
+    "start": "npm run migrate && node ./src/index.js",
     "dev": "nodemon ./src/index.js"
   },
   "repository": {
