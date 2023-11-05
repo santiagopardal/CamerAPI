@@ -4,8 +4,7 @@ const Node = require('../models/Node')
 const node_dao = require('../models/dao/node_dao')
 
 const createNode = async (nodeData) => {
-    const date = new Date()
-    nodeData.last_request = `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}@${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    nodeData.last_request = new Date()
     await dao.saveNode(nodeData)
     delete nodeData.last_request
     return await dao.getNode(nodeData)
@@ -36,7 +35,7 @@ const updateNodeLastRequest = async (nodeId, date) => {
     await node.load()
     await node_dao.update({
         id: nodeId,
-        last_request: `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}@${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+        last_request: date
     })
 }
 
