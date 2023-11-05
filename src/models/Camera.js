@@ -66,7 +66,7 @@ class Camera {
     }
 
     async switchRecording(record) {
-        const node = new Node(this.node)
+        const node = await this.getNode()
         const method = record ? 'record' : 'stop_recording'
         const args = [this.id]
         const nodeResponse = await node.request(method, args)
@@ -80,7 +80,7 @@ class Camera {
     }
 
     async getSnapshot() {
-        const node = new Node(this.node)
+        const node = await this.getNode()
         const nodeResponse = await node.request('get_snapshot_url', this.id)
         return await fetch(nodeResponse.result)
     }

@@ -1,7 +1,6 @@
 const Camera = require('../models/Camera')
 const CameraDAO = require('../models/dao/camera')
 const connection_dao = require('../models/dao/connection_dao')
-const Node = require('../models/Node')
 
 const getCamerasFromJSON = async (camerasAsJSON) => {
     const promises = []
@@ -74,7 +73,7 @@ const switchRecording = async (cameraId, newStatus) => {
 
 const updateConnectionStatus = async (cameraId, message, date) => {
     await getCamera(cameraId)
-    let status = {
+    const status = {
         camera: cameraId,
         message: message,
         date: date
