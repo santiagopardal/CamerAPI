@@ -1,11 +1,11 @@
 FROM node:latest
 
-WORKDIR /app
+WORKDIR /camerapi
 
 COPY . .
 
 RUN npm install --production
 
-RUN mkdir -p /app/temp
+RUN mkdir -p /camerapi/temp
 
 CMD ["npm", "start"]

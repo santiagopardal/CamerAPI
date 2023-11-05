@@ -1,8 +1,12 @@
+const env = require('dotenv').config()
+
+const { DB_HOST, DB_NAME, DB_USER, DB_PASSWORD } = env.parsed
+
 module.exports = {
   development: {
     client: 'postgresql',
     connection: {
-      host: process.env.DB_HOST || 'localhost',
+      host: DB_HOST || 'localhost',
       port: 5432,
       database: 'camerapi',
       user:     'postgres',
@@ -15,10 +19,10 @@ module.exports = {
   staging: {
     client: 'postgresql',
     connection: {
-      host:     process.env.DB_HOST || 'localhost',
-      database: process.env.DB_NAME || 'camerapi',
-      user:     process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'admin'
+      host:     DB_HOST || 'localhost',
+      database: DB_NAME || 'camerapi',
+      user:     DB_USER || 'postgres',
+      password: DB_PASSWORD || 'admin'
     },
     pool: {
       min: 2,
@@ -32,10 +36,10 @@ module.exports = {
   production: {
     client: 'postgresql',
     connection: {
-      host:     process.env.DB_HOST || 'localhost',
-      database: process.env.DB_NAME || 'camerapi',
-      user:     process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'admin'
+      host:     DB_HOST || 'localhost',
+      database: DB_NAME || 'camerapi',
+      user:     DB_USER || 'postgres',
+      password: DB_PASSWORD || 'admin'
     },
     pool: {
       min: 2,
