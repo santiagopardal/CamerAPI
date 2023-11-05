@@ -12,3 +12,4 @@ Although the project has grown a lot, there are still many things to improve, so
 - [ ] Find a way of encrypting each camera's password in the DB.
 - [ ] Create documentation for the API using Swagger.
 - [ ] Integrate with AWS S3 and other storing services.
+- [ ] Enable livestreaming for all the cameras, serving as a proxy to decouple the logic of the cameras from other integrations.
