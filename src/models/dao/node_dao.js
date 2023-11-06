@@ -1,23 +1,9 @@
 const knex = require('./knex')
-const { NODES_TABLE } = require('../constants')
+const { NODES_TABLE } = require('../../constants')
 
 const ID = 'id'
 const IP = 'ip'
 const PORT = 'port'
-const LAST_REQUEST = 'last_request'
-
-async function validateNode(id) {
-    const node = await getNode({id: id})
-
-    if (!node) {
-        const error = Error('There is no node with such id')
-        error.status = 404
-
-        throw error
-    }
-
-    return node
-}
 
 function getNodes() {
     return knex(NODES_TABLE).select(ID).select(IP).select(PORT)
@@ -43,7 +29,6 @@ function update(node) {
 }
 
 module.exports = {
-    validateNode,
     getNodes,
     getNode,
     deleteNode,

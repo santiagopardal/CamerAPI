@@ -1,27 +1,54 @@
-BEGIN;
+CREATE TABLE node (
+    id INTEGER NOT NULL,
+    ip TEXT NOT NULL,
+    port INTEGER NOT NULL,
+    last_request TEXT NOT NULL,
+    PRIMARY KEY (id)
+);
 
-INSERT INTO
-    camera (id, name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node)
-VALUES
-    (1, 'Front Yard', 'FI9803PV3', '192.168.0.131', 554, 80, 'admin', '*{-4s#aG*_>2', 1280, 720, 23, 1);
+CREATE TABLE camera (
+	id INTEGER NOT NULL,
+	name TEXT UNIQUE NOT NULL,
+	model TEXT NOT NULL,
+	ip TEXT NOT NULL,
+	streaming_port INTEGER,
+	http_port INTEGER NOT NULL,
+	user TEXT NOT NULL,
+	password TEXT NOT NULL,
+	width INTEGER NOT NULL,
+	height INTEGER NOT NULL,
+	framerate INTEGER NOT NULL,
+	node INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY (node) REFERENCES node(id)
+);
 
-INSERT INTO
-    camera (id, name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node)
-VALUES
-    (2, 'Back Yard', 'FI9803PV3', '192.168.0.132', 554, 80, 'admin', '*{-4s#aG*_>2', 1280, 720, 23, 1);
+CREATE TABLE cameraConfigurations (
+    camera INTEGER NOT NULL UNIQUE,
+    recording INTEGER NOT NULL,
+    sensitivity FLOAT NOT NULL,
+    PRIMARY KEY (camera),
+    FOREIGN KEY (camera) REFERENCES camera(id)
+);
 
-INSERT INTO
-    camera (id, name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node)
-VALUES
-    (3, 'Back Yard 2', 'FI9803PV3', '192.168.0.130', 554, 80, 'admin', '*{-4s#aG*_>2', 1280, 720, 23, 1);
+CREATE TABLE video (
+    id INTEGER NOT NULL,
+	path TEXT UNIQUE NOT NULL,
+	date TEXT NOT NULL,
+	camera INTEGER NOT NULL,
+	node INTEGER NOT NULL,
+	is_temporal TINYINT NOT NULL DEFAULT 1,
+	is_in_node TINYINT NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY (camera) REFERENCES camera(id) ON DELETE CASCADE,
+	FOREIGN KEY (node) REFERENCES node(id) ON DELETE CASCADE
+);
 
-INSERT INTO
-    camera (id, name, model, ip, streaming_port, http_port, user, password, width, height, framerate, node)
-VALUES
-    (4, 'Front Yard 2', 'FI89182', '192.168.0.133', NULL, 80, 'admin', '*{-4s#aG*_>2', 640, 480, 15, 1);
-
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (1, 0, 0.5);
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (2, 0, 0.5);
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (3, 0, 0.5);
-INSERT INTO cameraConfigurations (camera, recording, sensitivity) VALUES (4, 0, 0.5);
-COMMIT;
+CREATE TABLE connection(
+    id INTEGER NOT NULL,
+    camera INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    date DATE NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (camera) REFERENCES camera(id) ON DELETE CASCADE
+);

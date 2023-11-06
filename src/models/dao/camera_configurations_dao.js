@@ -1,5 +1,5 @@
 const knex = require('./knex')
-const { CAMERA_CONFIGURATION_TABLE } = require('../constants')
+const { CAMERA_CONFIGURATION_TABLE } = require('../../constants')
 const {Knex} = require('knex')
 
 const CAMERA = 'camera'

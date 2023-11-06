@@ -1,6 +1,6 @@
 const knex = require('./knex')
 const { getConfigurations } = require('./camera_configurations_dao')
-const { CAMERAS_TABLE } = require('../constants')
+const { CAMERAS_TABLE } = require('../../constants')
 
 const ID = 'id'
 const NODE = 'node'

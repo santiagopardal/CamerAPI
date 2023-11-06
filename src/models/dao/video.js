@@ -1,6 +1,6 @@
 const knex = require('./knex')
 const moment = require('moment')
-const { VIDEOS_TABLE } = require('../constants')
+const { VIDEOS_TABLE } = require('../../constants')
 
 const CAMERA = 'camera'
 const PATH = 'path'
@@ -26,7 +26,7 @@ function getAllFinalVideos(cameraId) {
 }
 
 async function getFinalVideosBetweenDates(cameraId, startingDate, endingDate) {
-    let videos = await getAllFinalVideos(cameraId)
+    const videos = await getAllFinalVideos(cameraId)
     return videos.filter(video => startingDate <= moment(video.date, 'DD-MM-YYYY') && moment(video.date, 'DD-MM-YYYY') <= endingDate)
 }
 
@@ -37,6 +37,15 @@ async function getFinalVideoPath(camera, date) {
         .where(IS_TEMPORAL, 0)
         .select(PATH)
     return videos ? videos[0].path : null
+}
+
+async function getFinalVideoId(camera, date) {
+    const videos = await knex(VIDEOS_TABLE)
+        .where(`${CAMERA}`, camera)
+        .where(`${VIDEOS_TABLE}.${DATE}`, date)
+        .where(IS_TEMPORAL, 0)
+        .select(PATH)
+    return videos ? videos[0].id : null
 }
 
 function markVideoAsLocallyStored(old_path, new_path) {
@@ -86,14 +95,6 @@ function deleteVideo(id) {
         .del()
 }
 
-function deleteAllTemporalVideosInDate(camera, date) {
-    return knex(VIDEOS_TABLE)
-        .where(CAMERA, camera)
-        .where(`${VIDEOS_TABLE}.${DATE}`, date)
-        .where(IS_TEMPORAL, 1)
-        .del()
-}
-
 module.exports = {
     logVideo,
     getAllFinalVideos,
@@ -104,5 +105,5 @@ module.exports = {
     getAllTemporalVideos,
     getAllTemporalVideosInDate,
     deleteVideo,
-    deleteAllTemporalVideosInDate
+    getFinalVideoId
 }

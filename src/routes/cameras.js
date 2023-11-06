@@ -1,50 +1,32 @@
 const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
-const Node = require('../models/Node')
-const connection_dao = require('../dao/connection_dao')
-const { handleError } = require('../dao/database_error')
-const requestToNode = require('../node_client/NodeClient')
-const { validateCameraID, getNodeIp } = require('../utils/cameras')
+const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
-const CameraController = require('../controllers/CameraController')
-
-
-const Camera = require('../models/Camera')
+const { getNodeCameras } = require('../controllers/NodeController')
+const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot } = require('../controllers/CameraController')
 
 const ERROR_MESSAGES = {
     SQLITE_CONSTRAINT: 'There is another camera with that name'
 }
 
-const cameraController = new CameraController()
-
 router.get('/:id/is_online', tryCatch(
     async (request, response) => {
-        const camera = await cameraController.get(request.params.id)
-        const isOnline = await camera.isOnline()
-        response.status(200).json({ isOnline: isOnline})
+        const cameraIsOnline = await isOnline(request.params.id)
+        response.status(200).json({ isOnline: cameraIsOnline})
     }
 ))
 
 router.post('/:id/recording_status', tryCatch(
     async (request, response) => {
-        const camera = await cameraController.get(request.params.id)
-        const isRecording = await camera.switchRecording(request.body.record)
+        const isRecording = await switchRecording(request.params.id, request.body.record)
         response.status(200).json({isRecording: isRecording})
     })
 )
 
 router.post('/', async (request, response, next) => {
     try {
-        const camera = new Camera()
-        await camera.setValues(request.body)
-        await camera.save()
-        try {
-            const nodeIp = await getNodeIp(camera.node)
-            await requestToNode(nodeIp, 'add_camera', camera.toJSON())
-        } catch (err) {
-            console.log("Couldn't connect to node:", err)
-        }
+        await createNew(request.body)
         response.status(201).json(request.body)
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)
@@ -54,37 +36,16 @@ router.post('/', async (request, response, next) => {
 
 router.post('/:id/connection_status/', async (request, response, next) => {
     try {
-        await cameraController.get(request.params.id)
-        let status = {
-            camera: request.params.id,
-            message: request.body.message,
-            date: request.body.date
-        }
-
-        if (!status.message || ! status.date) {
-            const error = Error('Connection message or date missing.')
-            error.status = 400
-            next(error)
-        }
-
-        await connection_dao.logStatus(status)
+        await updateConnectionStatus(request.params.id, request.body.message, request.body.date)
         response.status(200).send()
     } catch (error) {
-        error = handleError(error, ERROR_MESSAGES)
         next(error)
     }
 })
 
 router.patch('/:id', async (request, response, next) => {
     try {
-        const oldCamera = await cameraController.get(request.params.id)
-        const newCamera = new Camera(request.params.id)
-        await newCamera.setValues(request.body)
-        if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
-            const node = getNodeIp(newCamera.id)
-            await requestToNode(node.ip, 'update_sensitivity', {camera_id: newCamera.id, sensitivity: newCamera.configurations.sensitivity})
-        }
-        await newCamera.save()
+        const newCamera = await edit(request.params.id, request.body)
         response.status(200).json(newCamera.toJSON())
     } catch (error) {
         error = handleError(error, ERROR_MESSAGES)
@@ -94,38 +55,28 @@ router.patch('/:id', async (request, response, next) => {
 
 router.delete('/:id', tryCatch(
     async (request, response) => {
-        const camera = await cameraController.get(request.params.id)
-        const nodeIp = await getNodeIp(camera.node)
-        await camera.delete()
-        try {
-            await requestToNode(nodeIp, 'remove_camera', request.params.id)
-        } catch (err) {
-            console.log("Couldn't connect to node:", err)
-        }
+        await deleteCamera(request.params.id)
         response.status(204).send()
     })
 )
 
 router.get('/:id', tryCatch(
     async (request, response) => {
-        const camera = new Camera(request.params.id)
-        await camera.load()
+        const camera = await getCamera(request.params.id)
         response.status(200).json(camera.toJSON())
     })
 )
 
 router.get('/snapshot/:id', async (request, response, next) => {
     try {
-        let nodeIp = await getNodeIp(request.params.id)
-        let nodeResponse = await requestToNode(nodeIp, 'get_snapshot_url', request.params.id)
-        let cameraResponse = await fetch(nodeResponse.result)
-        let responseBlob = await cameraResponse.blob()
-        let arrayBuffer = await responseBlob.arrayBuffer()
-        let buffer = Buffer.from(arrayBuffer)
+        const snapshot = await getSnapshot(request.params.id)
+        const responseBlob = await snapshot.blob()
+        const arrayBuffer = await responseBlob.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
         response.type(responseBlob.type)
         response.send(buffer)
     } catch (err) {
-        let error = { message: `Could not connect to camera: ${err}`, status: 500 }
+        const error = { message: `Could not connect to camera: ${err}`, status: 500 }
         if (err.cause && err.cause.code === 'EHOSTUNREACH') {
             error.message = 'Could not connect to camera, camera was unreachable'
             error.status = 503
@@ -136,21 +87,19 @@ router.get('/snapshot/:id', async (request, response, next) => {
 
 router.get('/node/:id', tryCatch(
     async (request, response) => {
-        const node = new Node(request.params.id)
-        await node.load()
-        response.status(200).json(await node.getCameras())
+        response.status(200).json(await getNodeCameras(request.params.id))
     })
 )
 
 router.get('/', tryCatch(
     async (_, response) => {
-        const cameras = await cameraController.getAll()
+        const cameras = await getAll()
         response.status(200).json(cameras.map(camera => camera.toJSON()))
     })
 )
 
 router.use('/:id/temporal_videos/', async (req, res, next) => {
-    await validateCameraID(req.params.id)
+    await getCamera(req.params.id)
     req.camera = req.params.id
     next()
 },
@@ -158,7 +107,7 @@ temporal_videos
 )
 
 router.use('/:id/videos/', async (req, res, next) => {
-    await validateCameraID(req.params.id)
+    await getCamera(req.params.id)
     req.camera = req.params.id
     next()
 },
