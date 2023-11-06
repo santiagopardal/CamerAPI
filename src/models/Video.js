@@ -40,7 +40,7 @@ class Video {
     async delete() {
         const errorCallback = () => {
             const error = new Error('Error deleting video ' + this.id)
-            error.status(500)
+            error.status = 500
             throw error
         }
 
