@@ -50,7 +50,9 @@ router.get('/', tryCatch(
 
 router.get('/:date', tryCatch(
     async (request, response) => {
-        response.status(200).json(await getAllVideosInDateForCamera(request.camera, request.params.date))
+        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
+        const date = `${year}-${day}-${month}`
+        response.status(200).json(await getAllVideosInDateForCamera(request.camera, date))
     })
 )
 

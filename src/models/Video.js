@@ -12,7 +12,7 @@ class Video {
     }
 
     async load() {
-        const video = dao.getVideo(this.id)
+        const video = await dao.getVideo(this.id)
 
         if (!video) {
             const error = Error('There is no video with such id')
