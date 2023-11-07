@@ -38,13 +38,15 @@ class Video {
     }
 
     async delete() {
-        const errorCallback = () => {
-            const error = new Error('Error deleting video ' + this.id)
-            error.status = 500
-            throw error
-        }
-
-        await fs.unlink(this.path, errorCallback)
+        return new Promise((resolve, reject) => {
+            const onFinish = (error) => {
+                if (error)
+                    reject(error)
+                else
+                    resolve()
+            }
+            fs.unlink(this.path, onFinish)
+        })
     }
 }
 
