@@ -6,7 +6,7 @@
   "scripts": {
     "migrate": "knex migrate:latest",
     "start": "npm run migrate && node ./src/index.js",
-    "dev": "nodemon ./src/index.js"
+    "dev": "npm run migrate && nodemon ./src/index.js"
   },
   "repository": {
     "type": "git",
