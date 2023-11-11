@@ -61,6 +61,7 @@ class Node {
     }
 
     async getSnapshotURL(cameraId) {
+        // FIXME the ip must be the node's ip, not any ip.
         const client = new GRPCNode(`camerai:50051`, grpc.credentials.createInsecure())
         const requestData = { camera_id: cameraId }
         const fetchUrl = (resolve, reject) => {
