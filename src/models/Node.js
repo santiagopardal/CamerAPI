@@ -60,9 +60,9 @@ class Node {
         return nodeIp
     }
 
-    async getSnapshotURL() {
+    async getSnapshotURL(cameraId) {
         const client = new GRPCNode(`camerai:50051`, grpc.credentials.createInsecure())
-        const requestData = { camera_id: this.id }
+        const requestData = { camera_id: cameraId }
         const fetchUrl = (resolve, reject) => {
             client.get_snapshot_url(
                 requestData,
