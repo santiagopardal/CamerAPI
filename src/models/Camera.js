@@ -81,8 +81,8 @@ class Camera {
 
     async getSnapshot() {
         const node = await this.getNode()
-        const nodeResponse = await node.getSnapshotURL()
-        return await fetch(nodeResponse.result)
+        const url = await node.getSnapshotURL()
+        return await fetch(url)
     }
 
     toJSON() {
