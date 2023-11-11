@@ -20,8 +20,8 @@ function deleteNode(id) {
     return knex(NODES_TABLE).where(ID, id).delete()
 }
 
-function saveNode(node) {
-    return knex(NODES_TABLE).insert(node)
+async function saveNode(node) {
+    return await knex(NODES_TABLE).insert(node)
 }
 
 function update(node) {
