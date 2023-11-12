@@ -44,7 +44,7 @@ const deleteCamera = async (cameraId) => {
     const node = await camera.getNode()
     await camera.delete()
     try {
-        await node.request('remove_camera', cameraId)
+        await node.removeCamera(cameraId)
     } catch (err) {
         console.log("Couldn't connect to node:", err)
     }

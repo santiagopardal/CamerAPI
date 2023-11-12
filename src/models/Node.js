@@ -116,6 +116,20 @@ class Node {
         return new Promise(requestCameraToStopRecording)
     }
 
+    async removeCamera(cameraId) {
+        const client = this.getGRCPClient()
+        const removeCameraCallback = (resolve, reject) => {
+            client.remove_camera(
+                { camera_id: cameraId },
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(removeCameraCallback)
+    }
+
     async request(method, args) {
         return await requestToNode(this.ip, method, args)
     }
