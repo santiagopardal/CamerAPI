@@ -33,7 +33,7 @@ const edit = async (cameraId, newData) => {
     await newCamera.setValues(newData)
     if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
         const node = await newCamera.getNode()
-        await node.request('update_sensitivity', {camera_id: newCamera.id, sensitivity: newCamera.configurations.sensitivity})
+        await node.updateSensitivity(newCamera.id, newCamera.configurations.sensitivity)
     }
     await newCamera.save()
     return newCamera

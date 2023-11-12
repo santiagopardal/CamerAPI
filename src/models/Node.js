@@ -60,8 +60,7 @@ class Node {
     }
 
     async getSnapshotURL(cameraId) {
-        const ipProtocol = net.isIPv6(this.ip) ? 'ipv6' : 'ipv4'
-        const client = new GRPCNode(`${ipProtocol}:[${this.ip}]:50051`, grpc.credentials.createInsecure())
+        const client = this.getGRCPClient()
         const requestData = { camera_id: cameraId }
         const fetchUrl = (resolve, reject) => {
             client.get_snapshot_url(
@@ -75,8 +74,31 @@ class Node {
         return new Promise(fetchUrl)
     }
 
+    async updateSensitivity(cameraId, sensitivity) {
+        const client = this.getGRCPClient()
+        const requestSensitivityUpdate = (resolve, reject) => {
+            client.update_sensitivity(
+                { camera_id: cameraId, sensitivity: sensitivity },
+                (error, _) => {
+                    console.log(error)
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(requestSensitivityUpdate)
+    }
+
     async request(method, args) {
         return await requestToNode(this.ip, method, args)
+    }
+
+    getGRCPClient() {
+        if (!this.client) {
+            const ipProtocol = net.isIPv6(this.ip) ? 'ipv6' : 'ipv4'
+            this.client = new GRPCNode(`${ipProtocol}:[${this.ip}]:50051`, grpc.credentials.createInsecure())
+        }
+        return this.client
     }
 
     toJSON() {
