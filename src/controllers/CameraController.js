@@ -31,23 +31,27 @@ const edit = async (cameraId, newData) => {
     const oldCamera = await getCamera(cameraId)
     const newCamera = new Camera(cameraId)
     await newCamera.setValues(newData)
+    const promises = []
     if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
         const node = await newCamera.getNode()
-        await node.updateSensitivity(newCamera.id, newCamera.configurations.sensitivity)
+        promises.push(node.updateSensitivity(newCamera.id, newCamera.configurations.sensitivity))
     }
-    await newCamera.save()
+    promises.push(newCamera.save())
+    await Promise.all(promises)
     return newCamera
 }
 
 const deleteCamera = async (cameraId) => {
     const camera = await getCamera(cameraId)
     const node = await camera.getNode()
+    const promises = []
     try {
-        await node.removeCamera(cameraId)
+        promises.push(node.removeCamera(cameraId))
+        promises.push(camera.delete())
+        await Promise.all(promises)
     } catch (err) {
-        console.log("Couldn't connect to node:", err)
+        console.log("Couldn't connect to node or DB error:", err)
     }
-    await camera.delete()
 }
 
 const getCamera = async (cameraId) => {

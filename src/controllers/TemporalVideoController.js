@@ -11,12 +11,14 @@ const getVideo = async (id) => {
 
 const deleteVideo = async (videoId) => {
     const video = await getVideo(videoId)
+    const promises = []
 
     if (!video.isInNode) {
-        await video.delete(video.path)
+        promises.push(video.delete(video.path))
     }
 
-    await dao.deleteVideo(videoId)
+    promises.push(dao.deleteVideo(videoId))
+    await Promise.all(promises)
 }
 
 const getAllVideosInCamera = async (cameraId) => {
