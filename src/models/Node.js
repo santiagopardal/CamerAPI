@@ -40,7 +40,15 @@ class Node {
     }
 
     async save() {
-        await NodeDao.saveNode(this.toJSON())
+        if (!this.id) {
+            await NodeDao.saveNode(this.toJSON())
+        } else {
+            await this.update()
+        }
+    }
+
+    async update() {
+        await NodeDao.update(this.toJSON())
     }
 
     async delete() {
@@ -51,18 +59,8 @@ class Node {
         return await CameraDAO.getInNode(this.id)
     }
 
-    getIp() {
-        let nodeIp = this.ip
-        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
-        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(nodeIp))
-            nodeIp = ip.address()
-
-        return nodeIp
-    }
-
     async getSnapshotURL(cameraId) {
-        // FIXME the ip must be the node's ip, not any ip.
-        const client = new GRPCNode(`camerai:50051`, grpc.credentials.createInsecure())
+        const client = new GRPCNode(`${this.ip}:50051`, grpc.credentials.createInsecure())
         const requestData = { camera_id: cameraId }
         const fetchUrl = (resolve, reject) => {
             client.get_snapshot_url(
@@ -77,14 +75,15 @@ class Node {
     }
 
     async request(method, args) {
-        return await requestToNode(this.getIp(), method, args)
+        return await requestToNode(this.ip, method, args)
     }
 
     toJSON() {
-        return {
-            ip: this.ip,
-            port: this.port
+        const result = { ip: this.ip, port: this.port, last_request: this.lastRequest }
+        if (this.id) {
+            result.id = this.id
         }
+        return result
     }
 }
 
