@@ -68,7 +68,7 @@ class Node {
                 requestData,
                 (error, response) => {
                     if (error) reject(error)
-                    else resolve(response.url)
+                    else resolve(response.value)
                 }
             )
         }
