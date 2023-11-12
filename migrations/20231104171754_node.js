@@ -3,7 +3,7 @@ exports.up = function(knex) {
       table.increments('id', {primaryKey: true}).unsigned()
       table.string('ip').notNullable()
       table.integer('port').notNullable().unsigned()
-      table.date('last_request').notNullable()
+      table.datetime('last_request').notNullable()
     })
 };
 
