@@ -1,6 +1,6 @@
 const NodeDao = require('./dao/node_dao')
 const CameraDAO = require('./dao/camera')
-const ip = require('ip')
+const net = require('net')
 const requestToNode = require('./NodeClient/NodeClient')
 const NODE_PROTO_PATH = `${__dirname}/protos/Node.proto`
 const grpc = require('@grpc/grpc-js')
@@ -60,7 +60,8 @@ class Node {
     }
 
     async getSnapshotURL(cameraId) {
-        const client = new GRPCNode(`${this.ip}:50051`, grpc.credentials.createInsecure())
+        const ipProtocol = net.isIPv6(this.ip) ? 'ipv6' : 'ipv4'
+        const client = new GRPCNode(`${ipProtocol}:[${this.ip}]:50051`, grpc.credentials.createInsecure())
         const requestData = { camera_id: cameraId }
         const fetchUrl = (resolve, reject) => {
             client.get_snapshot_url(
