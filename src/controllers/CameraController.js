@@ -42,12 +42,12 @@ const edit = async (cameraId, newData) => {
 const deleteCamera = async (cameraId) => {
     const camera = await getCamera(cameraId)
     const node = await camera.getNode()
-    await camera.delete()
     try {
         await node.removeCamera(cameraId)
     } catch (err) {
         console.log("Couldn't connect to node:", err)
     }
+    await camera.delete()
 }
 
 const getCamera = async (cameraId) => {
