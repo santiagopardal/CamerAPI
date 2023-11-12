@@ -34,8 +34,9 @@ const addNewPart = async (camera, date, partData) => {
     const uploadIsComplete = upload_complete === 'True'
 
     if (uploadIsComplete) {
-        const newPath = await videoHandler.createVideosFromParts(parts, filename, camera, date)
-        await dao.markVideoAsLocallyStored(old_path, newPath)
+        const [newPath, storePromise] = await videoHandler.createVideosFromParts(parts, filename, camera, date)
+        const saveRecordPromise = dao.markVideoAsLocallyStored(old_path, newPath)
+        await Promise.all([storePromise, saveRecordPromise])
     } else {
         await videoHandler.saveFilePart(part, chunk, filename, camera, date)
     }
