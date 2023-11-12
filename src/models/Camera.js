@@ -52,7 +52,7 @@ class Camera {
         delete json.configurations
         const promise = this.id ? dao.updateCamera(this.id, json) : dao.createCamera(json)
         const result = await promise
-        this.id = this.id ? this.id : result.pop()
+        this.id = this.id ? this.id : result.pop().id
         await this.configurations.save()
     }
 
