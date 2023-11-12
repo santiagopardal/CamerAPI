@@ -80,13 +80,40 @@ class Node {
             client.update_sensitivity(
                 { camera_id: cameraId, sensitivity: sensitivity },
                 (error, _) => {
-                    console.log(error)
                     if (error) reject(error)
                     else resolve()
                 }
             )
         }
         return new Promise(requestSensitivityUpdate)
+    }
+
+    async startRecording(cameraId) {
+        const client = this.getGRCPClient()
+        const requestCameraToStartRecording = (resolve, reject) => {
+            client.record(
+                { cameras_ids: [cameraId] },
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(requestCameraToStartRecording)
+    }
+
+    async stopRecording(cameraId) {
+        const client = this.getGRCPClient()
+        const requestCameraToStopRecording = (resolve, reject) => {
+            client.stop_recording(
+                { cameras_ids: [cameraId] },
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(requestCameraToStopRecording)
     }
 
     async request(method, args) {

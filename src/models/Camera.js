@@ -28,6 +28,7 @@ class Camera {
             configurations.setValues(configurationsJSON)
         }
         this.configurations = configurations
+        this.nodeModel = null
     }
 
     async load() {
@@ -67,16 +68,20 @@ class Camera {
 
     async switchRecording(record) {
         const node = await this.getNode()
-        const method = record ? 'record' : 'stop_recording'
-        const args = [this.id]
-        const nodeResponse = await node.request(method, args)
-        return nodeResponse.result[this.id]
+        if (record) {
+            await node.startRecording(this.id)
+        } else {
+            await node.stopRecording(this.id)
+        }
+        return record
     }
 
     async getNode() {
-        const node = new Node(this.node)
-        await node.load()
-        return node
+        if (!this.nodeModel) {
+            this.nodeModel = new Node(this.node)
+            await this.nodeModel.load()
+        }
+        return this.nodeModel
     }
 
     async getSnapshot() {
