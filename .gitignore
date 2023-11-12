@@ -108,3 +108,4 @@ dist
 temporal_videos/*
 *DS_Store
 *.db
+*.part
