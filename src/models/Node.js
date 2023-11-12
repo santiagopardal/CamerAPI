@@ -130,6 +130,22 @@ class Node {
         return new Promise(requestNodeToStop)
     }
 
+    async addCamera(camera) {
+        const cameraData = camera.toJSON()
+        delete cameraData.node
+        const client = this.getGRCPClient()
+        const addCameraCallback = (resolve, reject) => {
+            client.add_camera(
+                cameraData,
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(addCameraCallback)
+    }
+
     async removeCamera(cameraId) {
         const client = this.getGRCPClient()
         const removeCameraCallback = (resolve, reject) => {

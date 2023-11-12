@@ -21,7 +21,7 @@ const createNew = async (data) => {
     await camera.save()
     try {
         const node = await camera.getNode()
-        await node.request('add_camera', camera.toJSON())
+        await node.addCamera(camera)
     } catch (err) {
         console.log("Couldn't connect to node:", err)
     }
