@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
+const { parseRequestDate } = require('../utils/DateUtils')
 const { getVideo, deleteVideo, getAllVideosInCamera, getAllVideosInDateForCamera, addNewPart, registerNewVideo } = require('../controllers/TemporalVideoController')
 
 const ERROR_MESSAGES = {
@@ -50,15 +51,13 @@ router.get('/', tryCatch(
 
 router.get('/:date', tryCatch(
     async (request, response) => {
-        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
-        response.status(200).json(await getAllVideosInDateForCamera(request.camera, new Date(year, month - 1, day)))
+        response.status(200).json(await getAllVideosInDateForCamera(request.camera, parseRequestDate(request.params.date)))
     })
 )
 
 router.put('/:date/', async (request, response, next) => {
     try {
-        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
-        const uploadIsComplete = await addNewPart(request.camera, new Date(year, month - 1, day), request.body)
+        const uploadIsComplete = await addNewPart(request.camera, parseRequestDate(request.params.date), request.body)
         const status = uploadIsComplete ? 201 : 200
         response.status(status).send()
     } catch (e) {
@@ -69,8 +68,7 @@ router.put('/:date/', async (request, response, next) => {
 
 router.post('/:date/', async (request, response, next) => {
     try {
-        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
-        const videoData = { path: request.body.path, date: new Date(year, month - 1, day) }
+        const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
         const video = await registerNewVideo(request.headers.node_id, request.camera, videoData)
         response.status(201).json(video)
     } catch (e) {

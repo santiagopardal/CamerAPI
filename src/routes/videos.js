@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
+const { parseRequestDate } = require('../utils/DateUtils')
 const { registerVideo, getVideo, getVideos, getVideosBetweenDatesForCamera, getFinalVideoPath } = require('../controllers/VideoController')
 
 const ERROR_MESSAGES = {
@@ -22,8 +23,7 @@ router.get('/from/:startingDate/to/:endingDate', tryCatch(
 
 router.post('/:date/', async (request, response, next) => {
     try {
-        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
-        const videoData = { path: request.body.path, date: new Date(year, month - 1, day) }
+        const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
         const video = await registerVideo(request.camera, request.headers.node_id, videoData)
         response.status(201).json(video)
     } catch (e) {
@@ -34,16 +34,14 @@ router.post('/:date/', async (request, response, next) => {
 
 router.get('/download/:date', tryCatch(
     async (request, response) => {
-        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
-        const pth = await getFinalVideoPath(request.camera, new Date(year, month - 1, day))
+        const pth = await getFinalVideoPath(request.camera, parseRequestDate(request.params.date))
         response.sendFile(pth)
     })
 )
 
 router.get('/stream/:date', tryCatch(
     async (request, response) => {
-        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
-        const video = await getVideo(request.camera, new Date(year, month - 1, day))
+        const video = await getVideo(request.camera, parseRequestDate(request.params.date))
         const fileSize = video.getSize()
         const range = request.headers.range
         let options = null
