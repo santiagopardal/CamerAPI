@@ -1,14 +1,9 @@
 const router = require('express').Router()
 const videos = require('./videos')
 const temporal_videos = require('./temporal_videos')
-const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
 const { getNodeCameras } = require('../controllers/NodeController')
 const { getCamera, getAll, isOnline, switchRecording, createNew, updateConnectionStatus, edit, deleteCamera, getSnapshot } = require('../controllers/CameraController')
-
-const ERROR_MESSAGES = {
-    SQLITE_CONSTRAINT: 'There is another camera with that name'
-}
 
 router.get('/:id/is_online', tryCatch(
     async (request, response) => {
@@ -24,34 +19,26 @@ router.post('/:id/recording_status', tryCatch(
     })
 )
 
-router.post('/', async (request, response, next) => {
-    try {
+router.post('/', tryCatch(
+    async (request, response) => {
         await createNew(request.body)
         response.status(201).json(request.body)
-    } catch (error) {
-        error = handleError(error, ERROR_MESSAGES)
-        next(error)
-    }
-})
+    })
+)
 
-router.post('/:id/connection_status/', async (request, response, next) => {
-    try {
+router.post('/:id/connection_status/', tryCatch(
+    async (request, response) => {
         await updateConnectionStatus(request.params.id, request.body.message, request.body.date)
         response.status(200).send()
-    } catch (error) {
-        next(error)
-    }
-})
+    })
+)
 
-router.patch('/:id', async (request, response, next) => {
-    try {
+router.patch('/:id', tryCatch(
+    async (request, response) => {
         const newCamera = await edit(request.params.id, request.body)
         response.status(200).json(newCamera.toJSON())
-    } catch (error) {
-        error = handleError(error, ERROR_MESSAGES)
-        next(error)
-    }
-})
+    })
+)
 
 router.delete('/:id', tryCatch(
     async (request, response) => {

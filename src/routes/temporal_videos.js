@@ -1,12 +1,7 @@
 const router = require('express').Router()
-const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
 const { parseRequestDate } = require('../utils/DateUtils')
 const { getVideo, deleteVideo, getAllVideosInCamera, getAllVideosInDateForCamera, addNewPart, registerNewVideo } = require('../controllers/TemporalVideoController')
-
-const ERROR_MESSAGES = {
-    SQLITE_CONSTRAINT: 'There is another video with that path'
-}
 
 router.get('/:id/stream/', tryCatch(
     async (request, response) => {
@@ -55,27 +50,21 @@ router.get('/:date', tryCatch(
     })
 )
 
-router.put('/:date/', async (request, response, next) => {
-    try {
+router.put('/:date/', tryCatch(
+    async (request, response, next) => {
         const uploadIsComplete = await addNewPart(request.camera, parseRequestDate(request.params.date), request.body)
         const status = uploadIsComplete ? 201 : 200
         response.status(status).send()
-    } catch (e) {
-        let error = handleError(e, ERROR_MESSAGES)
-        next(error)
-    }
-})
+    })
+)
 
-router.post('/:date/', async (request, response, next) => {
-    try {
+router.post('/:date/', tryCatch(
+    async (request, response, next) => {
         const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
         const video = await registerNewVideo(request.headers.node_id, request.camera, videoData)
         response.status(201).json(video)
-    } catch (e) {
-        let error = handleError(e, ERROR_MESSAGES)
-        next(error)
-    }
-})
+    })
+)
 
 router.delete('/:id', tryCatch(
     async (request, response) => {
