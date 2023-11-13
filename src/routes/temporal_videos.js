@@ -51,7 +51,7 @@ router.get('/:date', tryCatch(
 )
 
 router.put('/:date/', tryCatch(
-    async (request, response, next) => {
+    async (request, response) => {
         const uploadIsComplete = await addNewPart(request.camera, parseRequestDate(request.params.date), request.body)
         const status = uploadIsComplete ? 201 : 200
         response.status(status).send()
@@ -59,7 +59,7 @@ router.put('/:date/', tryCatch(
 )
 
 router.post('/:date/', tryCatch(
-    async (request, response, next) => {
+    async (request, response) => {
         const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
         const video = await registerNewVideo(request.headers.node_id, request.camera, videoData)
         response.status(201).json(video)
