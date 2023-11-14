@@ -52,6 +52,7 @@ async function markVideoAsLocallyStored(old_path, new_path) {
     return await knex(VIDEOS_TABLE)
         .where('path', old_path)
         .update({ 'path': new_path, 'node': 1, 'is_in_node': false })
+        .returning(ID)
 }
 
 async function getVideo(id) {

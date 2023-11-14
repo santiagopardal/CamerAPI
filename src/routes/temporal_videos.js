@@ -52,9 +52,9 @@ router.get('/:date', tryCatch(
 
 router.put('/:date/', tryCatch(
     async (request, response) => {
-        const uploadIsComplete = await addNewPart(request.camera, parseRequestDate(request.params.date), request.body)
-        const status = uploadIsComplete ? 201 : 200
-        response.status(status).send()
+        const videoId = await addNewPart(request.camera, parseRequestDate(request.params.date), request.body)
+        const status = videoId ? 201 : 200
+        response.status(status).json({ upload_complete: !!videoId, temporal_video_id: videoId })
     })
 )
 
