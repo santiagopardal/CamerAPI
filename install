@@ -1,2 +1,4 @@
 cp .env.schema .env
 mkdir -p temporal_videos
+git submodule init
+git submodule update
