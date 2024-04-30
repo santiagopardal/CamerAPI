@@ -22,7 +22,7 @@ const addConfigurationsToManyCameras = async (queryPromise) => {
 
 function createCamera(camera) {
     delete camera.id
-    return knex(CAMERAS_TABLE).insert(camera)
+    return knex(CAMERAS_TABLE).insert(camera).returning('id')
 }
 
 function getAllCameras() {

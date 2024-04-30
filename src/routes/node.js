@@ -14,6 +14,10 @@ router.post('/', tryCatch(
             if (!await nodeExists(nodeData)) {
                 node = await createNode(nodeData)
                 statusCode = 201
+            } else {
+                const error = new Error('Node with that data already exists')
+                error.status = 400
+                throw error
             }
         } else {
             node = await getNode(parseInt(request.headers.node_id))

@@ -28,6 +28,7 @@ class Camera {
             configurations.setValues(configurationsJSON)
         }
         this.configurations = configurations
+        this.nodeModel = null
     }
 
     async load() {
@@ -51,7 +52,7 @@ class Camera {
         delete json.configurations
         const promise = this.id ? dao.updateCamera(this.id, json) : dao.createCamera(json)
         const result = await promise
-        this.id = this.id ? this.id : result.pop()
+        this.id = this.id ? this.id : result.pop().id
         await this.configurations.save()
     }
 
@@ -67,22 +68,26 @@ class Camera {
 
     async switchRecording(record) {
         const node = await this.getNode()
-        const method = record ? 'record' : 'stop_recording'
-        const args = [this.id]
-        const nodeResponse = await node.request(method, args)
-        return nodeResponse.result[this.id]
+        if (record) {
+            await node.startRecording(this.id)
+        } else {
+            await node.stopRecording(this.id)
+        }
+        return record
     }
 
     async getNode() {
-        const node = new Node(this.node)
-        await node.load()
-        return node
+        if (!this.nodeModel) {
+            this.nodeModel = new Node(this.node)
+            await this.nodeModel.load()
+        }
+        return this.nodeModel
     }
 
     async getSnapshot() {
         const node = await this.getNode()
-        const nodeResponse = await node.request('get_snapshot_url', this.id)
-        return await fetch(nodeResponse.result)
+        const url = await node.getSnapshotURL(this.id)
+        return await fetch(url)
     }
 
     toJSON() {

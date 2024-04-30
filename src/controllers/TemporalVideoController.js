@@ -11,12 +11,14 @@ const getVideo = async (id) => {
 
 const deleteVideo = async (videoId) => {
     const video = await getVideo(videoId)
+    const promises = []
 
     if (!video.isInNode) {
-        await video.delete(video.path)
+        promises.push(video.delete(video.path))
     }
 
-    await dao.deleteVideo(videoId)
+    promises.push(dao.deleteVideo(videoId))
+    await Promise.all(promises)
 }
 
 const getAllVideosInCamera = async (cameraId) => {
@@ -34,13 +36,15 @@ const addNewPart = async (camera, date, partData) => {
     const uploadIsComplete = upload_complete === 'True'
 
     if (uploadIsComplete) {
-        const newPath = await videoHandler.createVideosFromParts(parts, filename, camera, date)
-        await dao.markVideoAsLocallyStored(old_path, newPath)
+        const [newPath, storePromise] = await videoHandler.createVideosFromParts(parts, filename, camera, date)
+        const saveRecordPromise = dao.markVideoAsLocallyStored(old_path, newPath)
+        const [_, [temporalVideo]] = await Promise.all([storePromise, saveRecordPromise])
+        return temporalVideo.id
     } else {
         await videoHandler.saveFilePart(part, chunk, filename, camera, date)
     }
 
-    return upload_complete
+    return null
 }
 
 const registerNewVideo = async (nodeId, cameraId, videoData) => {

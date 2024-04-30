@@ -1,7 +1,21 @@
 const NodeDao = require('./dao/node_dao')
 const CameraDAO = require('./dao/camera')
-const ip = require('ip')
+const net = require('net')
 const requestToNode = require('./NodeClient/NodeClient')
+const NODE_PROTO_PATH = `${__dirname}/CamerAIProtos/Node.proto`
+const grpc = require('@grpc/grpc-js')
+const protoLoader = require('@grpc/proto-loader')
+const packageDefinition = protoLoader.loadSync(
+    NODE_PROTO_PATH,
+    {
+        keepCase: true,
+        longs: String,
+        enums: String,
+        defaults: true,
+        oneofs: true
+    }
+)
+const GRPCNode = grpc.loadPackageDefinition(packageDefinition).Node
 
 class Node {
 
@@ -26,7 +40,15 @@ class Node {
     }
 
     async save() {
-        await NodeDao.saveNode(this.toJSON())
+        if (!this.id) {
+            await NodeDao.saveNode(this.toJSON())
+        } else {
+            await this.update()
+        }
+    }
+
+    async update() {
+        await NodeDao.update(this.toJSON())
     }
 
     async delete() {
@@ -37,24 +59,125 @@ class Node {
         return await CameraDAO.getInNode(this.id)
     }
 
-    getIp() {
-        let nodeIp = this.ip
-        // TODO Fix this, try to resolve and it resolves to localhost, then it is.
-        if (['::ffff:172.18.0.1', '::ffff:172.0.0.1', '127.0.0.1', 'localhost'].includes(nodeIp))
-            nodeIp = ip.address()
+    async getSnapshotURL(cameraId) {
+        const client = this.getGRCPClient()
+        const requestData = { camera_id: cameraId }
+        const fetchUrl = (resolve, reject) => {
+            client.get_snapshot_url(
+                requestData,
+                (error, response) => {
+                    if (error) reject(error)
+                    else resolve(response.value)
+                }
+            )
+        }
+        return new Promise(fetchUrl)
+    }
 
-        return nodeIp
+    async updateSensitivity(cameraId, sensitivity) {
+        const client = this.getGRCPClient()
+        const requestSensitivityUpdate = (resolve, reject) => {
+            client.update_sensitivity(
+                { camera_id: cameraId, sensitivity: sensitivity },
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(requestSensitivityUpdate)
+    }
+
+    async startRecording(cameraId) {
+        const client = this.getGRCPClient()
+        const requestCameraToStartRecording = (resolve, reject) => {
+            client.record(
+                { cameras_ids: [cameraId] },
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(requestCameraToStartRecording)
+    }
+
+    async stopRecording(cameraId) {
+        const client = this.getGRCPClient()
+        const requestCameraToStopRecording = (resolve, reject) => {
+            client.stop_recording(
+                { cameras_ids: [cameraId] },
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(requestCameraToStopRecording)
+    }
+
+    async stop() {
+        const client = this.getGRCPClient()
+        const requestNodeToStop = (resolve, reject) => {
+            client.stop(
+                null,
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(requestNodeToStop)
+    }
+
+    async addCamera(camera) {
+        const cameraData = camera.toJSON()
+        delete cameraData.node
+        const client = this.getGRCPClient()
+        const addCameraCallback = (resolve, reject) => {
+            client.add_camera(
+                cameraData,
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(addCameraCallback)
+    }
+
+    async removeCamera(cameraId) {
+        const client = this.getGRCPClient()
+        const removeCameraCallback = (resolve, reject) => {
+            client.remove_camera(
+                { camera_id: cameraId },
+                (error, _) => {
+                    if (error) reject(error)
+                    else resolve()
+                }
+            )
+        }
+        return new Promise(removeCameraCallback)
     }
 
     async request(method, args) {
-        return await requestToNode(this.getIp(), method, args)
+        return await requestToNode(this.ip, method, args)
+    }
+
+    getGRCPClient() {
+        if (!this.client) {
+            const ipProtocol = net.isIPv6(this.ip) ? 'ipv6' : 'ipv4'
+            this.client = new GRPCNode(`${ipProtocol}:[${this.ip}]:50051`, grpc.credentials.createInsecure())
+        }
+        return this.client
     }
 
     toJSON() {
-        return {
-            ip: this.ip,
-            port: this.port
+        const result = { ip: this.ip, port: this.port, last_request: this.lastRequest }
+        if (this.id) {
+            result.id = this.id
         }
+        return result
     }
 }
 

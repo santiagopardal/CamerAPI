@@ -1,7 +1,4 @@
+cp .env.schema .env
 mkdir -p temporal_videos
-
-if [ ! -f ./.env ]; then
-    echo CAMERAI_IMAGES=/Images >> ./.env
-    echo DB_HOST=camerapidatabase >> ./.env
-    echo TEMPORAL_VIDEOS=/camerapi/temporal_videos >> ./.env
-fi
+git submodule init
+git submodule update

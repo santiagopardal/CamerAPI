@@ -1,11 +1,7 @@
 const router = require('express').Router()
-const { handleError } = require('../models/dao/database_error')
 const tryCatch = require('../controllers/tryCatch')
+const { parseRequestDate } = require('../utils/DateUtils')
 const { getVideo, deleteVideo, getAllVideosInCamera, getAllVideosInDateForCamera, addNewPart, registerNewVideo } = require('../controllers/TemporalVideoController')
-
-const ERROR_MESSAGES = {
-    SQLITE_CONSTRAINT: 'There is another video with that path'
-}
 
 router.get('/:id/stream/', tryCatch(
     async (request, response) => {
@@ -50,45 +46,29 @@ router.get('/', tryCatch(
 
 router.get('/:date', tryCatch(
     async (request, response) => {
-        const [day, month, year] = request.params.date.split('-').map(number => parseInt(number, 10))
-        const date = `${year}-${day}-${month}`
-        response.status(200).json(await getAllVideosInDateForCamera(request.camera, date))
+        response.status(200).json(await getAllVideosInDateForCamera(request.camera, parseRequestDate(request.params.date)))
     })
 )
 
-router.put('/:date/', async (request, response, next) => {
-    try {
-        const uploadIsComplete = await addNewPart(request.camera, request.params.date, request.body)
-        const status = uploadIsComplete ? 201 : 200
-        response.status(status).send()
-    } catch (e) {
-        let error = handleError(e, ERROR_MESSAGES)
-        next(error)
-    }
-})
+router.put('/:date/', tryCatch(
+    async (request, response) => {
+        const videoId = await addNewPart(request.camera, parseRequestDate(request.params.date), request.body)
+        const status = videoId ? 201 : 200
+        response.status(status).json({ upload_complete: !!videoId, temporal_video_id: videoId })
+    })
+)
 
-router.post('/:date/', async (request, response, next) => {
-    try {
-        const videoData = { path: request.body.path, date: request.params.date }
+router.post('/:date/', tryCatch(
+    async (request, response) => {
+        const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
         const video = await registerNewVideo(request.headers.node_id, request.camera, videoData)
         response.status(201).json(video)
-    } catch (e) {
-        let error = handleError(e, ERROR_MESSAGES)
-        next(error)
-    }
-})
+    })
+)
 
 router.delete('/:id', tryCatch(
     async (request, response) => {
         await deleteVideo(request.params.id)
-        response.status(204).send()
-    })
-)
-
-
-router.delete('/:date', tryCatch(
-    async (request, response) => {
-        await getAllVideosInDateForCamera(request.camera, request.params.date)
         response.status(204).send()
     })
 )

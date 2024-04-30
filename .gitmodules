@@ -1,0 +1,3 @@
+[submodule "src/models/CamerAIProtos"]
+	path = src/models/CamerAIProtos
+	url = git@github.com:santiagopardal/CamerAIProtos.git

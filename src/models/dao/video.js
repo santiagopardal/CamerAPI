@@ -48,10 +48,11 @@ async function getFinalVideoId(camera, date) {
     return videos ? videos[0].id : null
 }
 
-function markVideoAsLocallyStored(old_path, new_path) {
-    return knex(VIDEOS_TABLE)
+async function markVideoAsLocallyStored(old_path, new_path) {
+    return await knex(VIDEOS_TABLE)
         .where('path', old_path)
         .update({ 'path': new_path, 'node': 1, 'is_in_node': false })
+        .returning(ID)
 }
 
 async function getVideo(id) {
