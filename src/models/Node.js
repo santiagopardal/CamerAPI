@@ -15,7 +15,7 @@ const packageDefinition = protoLoader.loadSync(
         oneofs: true
     }
 )
-const GRPCNode = grpc.loadPackageDefinition(packageDefinition).Node
+const GRPCNode = grpc.loadPackageDefinition(packageDefinition).node.Node
 
 class Node {
 
