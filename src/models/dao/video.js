@@ -53,19 +53,6 @@ async function getFinalVideoId(camera, date) {
     return video.id
 }
 
-async function markVideoAsLocallyStored(old_path, new_path) {
-    const video = await prisma.video.update(
-        {
-            where: { path: old_path },
-            data: {
-                nodeId: 1,
-                is_in_node: false
-            }
-        }
-    )
-    return video.id
-}
-
 async function getVideo(id) {
     return prisma.video.findFirst(
         {

@@ -1,6 +1,5 @@
 const NodeDao = require('./dao/node_dao')
 const net = require('net')
-const requestToNode = require('./NodeClient/NodeClient')
 const NODE_PROTO_PATH = `${__dirname}/CamerAIProtos/Node.proto`
 const grpc = require('@grpc/grpc-js')
 const protoLoader = require('@grpc/proto-loader')
@@ -39,14 +38,6 @@ class Node {
             throw error
         }
         this.setValues(nodeJSON)
-    }
-
-    async save() {
-        if (!this.id) {
-            await NodeDao.saveNode(this.toJSON())
-        } else {
-            await this.update()
-        }
     }
 
     async update() {
@@ -165,10 +156,6 @@ class Node {
             )
         }
         return new Promise(removeCameraCallback)
-    }
-
-    async request(method, args) {
-        return await requestToNode(this.ip, method, args)
     }
 
     getGRCPClient() {
