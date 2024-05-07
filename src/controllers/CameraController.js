@@ -109,8 +109,25 @@ const isOnline = async (cameraId) => {
 }
 
 const switchRecording = async (cameraId, newStatus) => {
-    const camera = await getCamera(cameraId)
-    return await camera.switchRecording(newStatus)
+    const promises = [
+        getCamera(cameraId),
+        prisma.cameraConfigurations.update(
+            {
+                where: {cameraId: parseInt(cameraId, 10)},
+                data: { recording: newStatus }
+            }
+        )
+    ]
+    const [camera, _] = Promise.all(promises)
+
+    const node = new Node(camera.nodeId)
+    await node.load()
+
+    if (!newStatus) {
+        await node.stopRecording(parseInt(cameraId, 10))
+    } else {
+        await node.startRecording(parseInt(cameraId, 10))
+    }
 }
 
 const updateConnectionStatus = async (cameraId, message, date) => {
