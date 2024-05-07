@@ -21,9 +21,9 @@ const registerVideo = async (camera, node, videoData) => {
     const video = {
         path: path,
         date: date,
-        camera: camera,
+        cameraId: camera,
         is_temporal: false,
-        node: node,
+        nodeId: node,
         is_in_node: true
     }
     await dao.logVideo(video)

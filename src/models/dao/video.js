@@ -1,28 +1,21 @@
-const knex = require('./knex')
 const moment = require('moment')
-const { VIDEOS_TABLE } = require('../../constants')
-
-const CAMERA = 'camera'
-const PATH = 'path'
-const DATE = 'date'
-const ID = 'id'
-const IS_TEMPORAL = 'is_temporal'
-const NODE = 'node'
-const IS_IN_NODE = 'is_in_node'
+const { PrismaClient } = require("@prisma/client")
+const prisma = new PrismaClient()
 
 function logVideo(video) {
-    return knex(VIDEOS_TABLE).insert(video)
+    return prisma.video.create(
+        {
+            data: video
+        }
+    )
 }
 
 function getAllFinalVideos(cameraId) {
-    return knex(VIDEOS_TABLE)
-        .where(`${CAMERA}`, cameraId)
-        .where(IS_TEMPORAL, 0)
-        .select(`${ID}`)
-        .select(PATH)
-        .select(DATE)
-        .select(NODE)
-        .select(IS_IN_NODE)
+    return prisma.video.findMany(
+        {
+            where: { is_temporal: false, cameraId: parseInt(cameraId, 10) }
+        }
+    )
 }
 
 async function getFinalVideosBetweenDates(cameraId, startingDate, endingDate) {
@@ -31,69 +24,80 @@ async function getFinalVideosBetweenDates(cameraId, startingDate, endingDate) {
 }
 
 async function getFinalVideoPath(camera, date) {
-    const videos = await knex(VIDEOS_TABLE)
-        .where(`${CAMERA}`, camera)
-        .where(`${VIDEOS_TABLE}.${DATE}`, date)
-        .where(IS_TEMPORAL, 0)
-        .select(PATH)
-    return videos ? videos[0].path : null
+    const video = await prisma.video.findFirst(
+        {
+            where: {
+                cameraId: parseInt(camera, 10),
+                date: moment(date, 'DD-MM-YYYY'),
+                is_temporal: false
+            },
+            select: { path: true }
+        }
+    )
+
+    return video.path
 }
 
 async function getFinalVideoId(camera, date) {
-    const videos = await knex(VIDEOS_TABLE)
-        .where(`${CAMERA}`, camera)
-        .where(`${VIDEOS_TABLE}.${DATE}`, date)
-        .where(IS_TEMPORAL, 0)
-        .select(PATH)
-    return videos ? videos[0].id : null
+    const video = await prisma.video.findFirst(
+        {
+            where: {
+                cameraId: parseInt(camera, 10),
+                date: moment(date, 'DD-MM-YYYY'),
+                is_temporal: false
+            },
+            select: { id: true }
+        }
+    )
+
+    return video.id
 }
 
 async function markVideoAsLocallyStored(old_path, new_path) {
-    return await knex(VIDEOS_TABLE)
-        .where('path', old_path)
-        .update({ 'path': new_path, 'node': 1, 'is_in_node': false })
-        .returning(ID)
+    const video = await prisma.video.update(
+        {
+            where: { path: old_path },
+            data: {
+                nodeId: 1,
+                is_in_node: false
+            }
+        }
+    )
+    return video.id
 }
 
 async function getVideo(id) {
-    return knex(VIDEOS_TABLE)
-        .where(ID, id)
-        .select(ID)
-        .select(PATH)
-        .select(DATE)
-        .select(CAMERA)
-        .select(NODE)
-        .select(IS_IN_NODE)
+    return prisma.video.findFirst(
+        {
+            where: {id: parseInt(id, 10)}
+        }
+    );
 }
 
 function getAllTemporalVideos(camera) {
-    return knex(VIDEOS_TABLE)
-        .where(CAMERA, camera)
-        .where(IS_TEMPORAL, 1)
-        .select(ID)
-        .select(PATH)
-        .select(DATE)
-        .select(NODE)
-        .select(IS_IN_NODE)
-        .orderBy(PATH, 'asc')
+    return prisma.video.findMany(
+        {
+            where: { is_temporal: true, cameraId: parseInt(camera, 10) },
+            orderBy: { path: "asc" }
+        }
+    )
 }
 
 function getAllTemporalVideosInDate(camera, date) {
-    return knex(VIDEOS_TABLE)
-        .where(CAMERA, camera)
-        .where(`${VIDEOS_TABLE}.${DATE}`, date)
-        .where(IS_TEMPORAL, 1)
-        .select(ID)
-        .select(PATH)
-        .select(NODE)
-        .select(IS_IN_NODE)
-        .orderBy(PATH, 'asc')
+    return prisma.video.findMany(
+        {
+            where: {
+                is_temporal: true,
+                cameraId: parseInt(camera, 10),
+                date: moment(date, 'DD-MM-YYYY')
+            },
+            orderBy: { path: "asc" }
+        }
+    )
 }
 
 function deleteVideo(id) {
-    return knex(VIDEOS_TABLE)
-        .where(ID, id)
-        .del()
+    return prisma.video.delete({ where: {id: parseInt(id, 10) } })
 }
 
 module.exports = {

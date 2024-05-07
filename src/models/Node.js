@@ -1,5 +1,4 @@
 const NodeDao = require('./dao/node_dao')
-const CameraDAO = require('./dao/camera')
 const net = require('net')
 const requestToNode = require('./NodeClient/NodeClient')
 const NODE_PROTO_PATH = `${__dirname}/CamerAIProtos/Node.proto`
@@ -16,6 +15,9 @@ const packageDefinition = protoLoader.loadSync(
     }
 )
 const GRPCNode = grpc.loadPackageDefinition(packageDefinition).node.Node
+
+const {PrismaClient} = require("@prisma/client")
+const prisma = new PrismaClient()
 
 class Node {
 
@@ -56,7 +58,12 @@ class Node {
     }
 
     async getCameras() {
-        return await CameraDAO.getInNode(this.id)
+        return prisma.camera.findMany(
+            {
+                where: { nodeId: this.id },
+                include: { node: true, configurations: true }
+            }
+        )
     }
 
     async getSnapshotURL(cameraId) {

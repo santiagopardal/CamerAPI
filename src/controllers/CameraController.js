@@ -1,5 +1,4 @@
 const Node = require('../models/Node')
-const connection_dao = require('../models/dao/connection_dao')
 const {PrismaClient} = require("@prisma/client");
 const prisma = new PrismaClient()
 
@@ -117,7 +116,7 @@ const switchRecording = async (cameraId, newStatus) => {
 const updateConnectionStatus = async (cameraId, message, date) => {
     await getCamera(cameraId)
     const status = {
-        camera: cameraId,
+        cameraId: parseInt(cameraId, 10),
         message: message,
         date: date
     }
@@ -128,7 +127,7 @@ const updateConnectionStatus = async (cameraId, message, date) => {
         throw error
     }
 
-    await connection_dao.logStatus(status)
+    await prisma.connection.create({ data: status })
 }
 
 const getSnapshot = async (cameraId) => {
