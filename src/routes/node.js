@@ -28,7 +28,7 @@ router.post('/', tryCatch(
 
 router.get('/:id', tryCatch(
     async (request, response) => {
-        const node = await getNode(request.params.id)
+        const node = await getNode(parseInt(request.params.id, 10))
         response.status(200).json(node.toJSON())
     })
 )

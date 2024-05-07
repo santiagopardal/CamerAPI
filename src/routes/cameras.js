@@ -21,8 +21,8 @@ router.post('/:id/recording_status', tryCatch(
 
 router.post('/', tryCatch(
     async (request, response) => {
-        await createNew(request.body)
-        response.status(201).json(request.body)
+        const camera = await createNew(request.body)
+        response.status(201).json(camera)
     })
 )
 
@@ -36,7 +36,7 @@ router.post('/:id/connection_status/', tryCatch(
 router.patch('/:id', tryCatch(
     async (request, response) => {
         const newCamera = await edit(request.params.id, request.body)
-        response.status(200).json(newCamera.toJSON())
+        response.status(200).json(newCamera)
     })
 )
 
@@ -50,7 +50,7 @@ router.delete('/:id', tryCatch(
 router.get('/:id', tryCatch(
     async (request, response) => {
         const camera = await getCamera(request.params.id)
-        response.status(200).json(camera.toJSON())
+        response.status(200).json(camera)
     })
 )
 
@@ -81,7 +81,7 @@ router.get('/node/:id', tryCatch(
 router.get('/', tryCatch(
     async (_, response) => {
         const cameras = await getAll()
-        response.status(200).json(cameras.map(camera => camera.toJSON()))
+        response.status(200).json(cameras)
     })
 )
 

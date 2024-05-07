@@ -64,7 +64,7 @@ model Video {
 model Connection {
   id              Int     @id @default(autoincrement())
   camera          Camera  @relation(fields: [cameraId], references: [id])
-  cameraId        Int     @unique
+  cameraId        Int
   message         String
   date            DateTime @default(now())
 }

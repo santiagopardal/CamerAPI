@@ -1,31 +1,37 @@
-const knex = require('./knex')
-const { NODES_TABLE } = require('../../constants')
-
-const ID = 'id'
-const IP = 'ip'
-const PORT = 'port'
+const { PrismaClient } = require('@prisma/client')
+const prisma = new PrismaClient()
 
 function getNodes() {
-    return knex(NODES_TABLE).select(ID).select(IP).select(PORT)
+    return prisma.node.findMany()
 }
 
 async function getNode(node) {
-    let query = knex(NODES_TABLE).select(ID).select(IP).select(PORT)
-    Object.keys(node).forEach(key => query.where(key, node[key]))
-    const nodeFetched = await query
-    return nodeFetched ? nodeFetched[0] : null
+    return prisma.node.findFirst(
+        {
+            where: {...node}
+        }
+    );
 }
 
 function deleteNode(id) {
-    return knex(NODES_TABLE).where(ID, id).delete()
+    return prisma.node.deleteMany({where: {id: id}})
 }
 
 async function saveNode(node) {
-    return await knex(NODES_TABLE).insert(node)
+    return prisma.node.create(
+        {
+            data: { ...node }
+        }
+    )
 }
 
 function update(node) {
-    return knex(NODES_TABLE).where(ID, node.id).update(node)
+    return prisma.node.update(
+        {
+            where: { id: node.id },
+            data: { ...node }
+        }
+    )
 }
 
 module.exports = {

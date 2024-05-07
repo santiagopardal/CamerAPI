@@ -1,73 +1,112 @@
-const Camera = require('../models/Camera')
-const CameraDAO = require('../models/dao/camera')
+const Node = require('../models/Node')
 const connection_dao = require('../models/dao/connection_dao')
-
-const getCamerasFromJSON = async (camerasAsJSON) => {
-    const promises = []
-    const cameras = camerasAsJSON.map(
-        camera => {
-            const cam = new Camera(camera.id)
-            promises.push(cam.setValues(camera))
-            return cam
-        }
-    )
-    await Promise.all(promises)
-    return cameras
-}
+const {PrismaClient} = require("@prisma/client");
+const prisma = new PrismaClient()
 
 const createNew = async (data) => {
-    const camera = new Camera()
-    await camera.setValues(data)
-    await camera.save()
+    const camera = await prisma.camera.create(
+        {
+            data: { ...data }
+        }
+    )
     try {
-        const node = await camera.getNode()
+        const node = new Node(camera.nodeId)
+        await node.load()
         await node.addCamera(camera)
     } catch (err) {
         console.log("Couldn't connect to node:", err)
     }
+    return camera
 }
 
 const edit = async (cameraId, newData) => {
-    const oldCamera = await getCamera(cameraId)
-    const newCamera = new Camera(cameraId)
-    await newCamera.setValues(newData)
-    const promises = []
-    if (oldCamera.configurations.sensitivity !== newCamera.configurations.sensitivity) {
-        const node = await newCamera.getNode()
-        promises.push(node.updateSensitivity(newCamera.id, newCamera.configurations.sensitivity))
+    const oldConfigurations = prisma.cameraConfigurations.findFirst(
+        {
+            where: { cameraId: parseInt(cameraId) },
+            select: { sensitivity: true }
+        }
+    )
+    const newConfigurations = newData.configurations
+
+    delete newData.configurations
+
+    const camera = await prisma.camera.update(
+        {
+            where: { id: parseInt(cameraId) },
+            data: newData
+        }
+    )
+
+    if (newConfigurations != null && oldConfigurations.sensitivity !== newConfigurations.sensitivity) {
+        const promises = []
+        promises.push(
+            prisma.cameraConfigurations.update(
+                {
+                    where: { cameraId: parseInt(cameraId) },
+                    data: newConfigurations
+                }
+            )
+        )
+        const node = new Node(camera.nodeId)
+        await node.load()
+        promises.push(
+            node.updateSensitivity(camera.id, newConfigurations.sensitivity)
+        )
+        await Promise.all(promises)
     }
-    promises.push(newCamera.save())
-    await Promise.all(promises)
-    return newCamera
+
+    return camera
 }
 
 const deleteCamera = async (cameraId) => {
-    const camera = await getCamera(cameraId)
-    const node = await camera.getNode()
-    const promises = []
+    await prisma.cameraConfigurations.deleteMany(
+        {
+            where: { cameraId: parseInt(cameraId, 10) }
+        }
+    )
+    const camera = await prisma.camera.delete(
+        {
+            where: {id: parseInt(cameraId, 10)}
+        }
+    )
+    const node = new Node(camera.nodeId)
+    await node.load()
     try {
-        promises.push(node.removeCamera(cameraId))
-        promises.push(camera.delete())
-        await Promise.all(promises)
+        await node.removeCamera(parseInt(cameraId, 10))
     } catch (err) {
         console.log("Couldn't connect to node or DB error:", err)
     }
 }
 
 const getCamera = async (cameraId) => {
-    const camera = new Camera(cameraId)
-    await camera.load()
-    return camera
+    return prisma.camera.findFirst(
+        {
+            where: { id: parseInt(cameraId, 10) },
+            include: { node: true, configurations: true }
+        }
+    )
 }
 
 const getAll = async () => {
-    const camerasAsJSON = await CameraDAO.getAllCameras()
-    return await getCamerasFromJSON(camerasAsJSON)
+    return prisma.camera.findMany(
+        {
+            include: {
+                node: true,
+                configurations: true,
+            }
+        }
+    )
 }
 
 const isOnline = async (cameraId) => {
-    const camera = await getCamera(cameraId)
-    return await camera.isOnline()
+    const lastStatus = await prisma.connection.findFirst(
+        {
+            where: { cameraId: parseInt(cameraId, 10) },
+            orderBy: { date: "desc" }
+        }
+    )
+
+    return lastStatus != null && lastStatus.message === "Connected"
 }
 
 const switchRecording = async (cameraId, newStatus) => {
@@ -93,9 +132,20 @@ const updateConnectionStatus = async (cameraId, message, date) => {
 }
 
 const getSnapshot = async (cameraId) => {
-    const camera = new Camera(cameraId)
-    await camera.load()
-    return await camera.getSnapshot()
+    const queryData = await prisma.camera.findFirst(
+        {
+            where: {
+                id: parseInt(cameraId, 10)
+            },
+            select: { nodeId: true }
+        }
+    )
+
+    const node = new Node(queryData.nodeId)
+    await node.load()
+
+    const url = await node.getSnapshotURL(this.id)
+    return await fetch(url)
 }
 
 module.exports = {

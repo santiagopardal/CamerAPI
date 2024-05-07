@@ -20,7 +20,7 @@ const GRPCNode = grpc.loadPackageDefinition(packageDefinition).node.Node
 class Node {
 
     constructor(id) {
-        this.id = id
+        this.id = parseInt(id, 10)
     }
 
     setValues({ ip, port, last_request }) {
