@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Node {
+  id              Int     @id @default(autoincrement())
+  ip              String
+  port            Int
+  last_request    DateTime @default(now())
+  cameras         Camera[]
+  videos          Video[]
+}
+
+model Camera {
+  id              Int     @id @default(autoincrement())
+  name            String
+  model           String
+  ip              String
+  streaming_port  Int
+  http_port       Int
+  user            String
+  password        String
+  width           Int
+  height          Int
+  framerate       Int
+  node            Node    @relation(fields: [nodeId], references: [id])
+  nodeId          Int
+  configurations  CameraConfigurations?
+  videos          Video[]
+  connections     Connection[]
+}
+
+model CameraConfigurations {
+  id              Int     @id @default(autoincrement())
+  recording       Boolean
+  sensitivity     Float
+  camera          Camera  @relation(fields: [cameraId], references: [id])
+  cameraId        Int     @unique
+}
+
+model Video {
+  id              Int     @id @default(autoincrement())
+  path            String
+  date            DateTime
+  is_temporal     Boolean
+  is_in_node      Boolean
+  camera          Camera  @relation(fields: [cameraId], references: [id])
+  cameraId        Int     @unique
+  node            Node    @relation(fields: [nodeId], references: [id])
+  nodeId          Int
+}
+
+model Connection {
+  id              Int     @id @default(autoincrement())
+  camera          Camera  @relation(fields: [cameraId], references: [id])
+  cameraId        Int     @unique
+  message         String
+  date            DateTime @default(now())
+}
