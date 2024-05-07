@@ -74,28 +74,6 @@ async function getVideo(id) {
     );
 }
 
-function getAllTemporalVideos(camera) {
-    return prisma.video.findMany(
-        {
-            where: { is_temporal: true, cameraId: parseInt(camera, 10) },
-            orderBy: { path: "asc" }
-        }
-    )
-}
-
-function getAllTemporalVideosInDate(camera, date) {
-    return prisma.video.findMany(
-        {
-            where: {
-                is_temporal: true,
-                cameraId: parseInt(camera, 10),
-                date: moment(date, 'DD-MM-YYYY')
-            },
-            orderBy: { path: "asc" }
-        }
-    )
-}
-
 function deleteVideo(id) {
     return prisma.video.delete({ where: {id: parseInt(id, 10) } })
 }
@@ -105,10 +83,7 @@ module.exports = {
     getAllFinalVideos,
     getFinalVideosBetweenDates,
     getFinalVideoPath,
-    markVideoAsLocallyStored,
     getVideo,
-    getAllTemporalVideos,
-    getAllTemporalVideosInDate,
     deleteVideo,
     getFinalVideoId
 }
