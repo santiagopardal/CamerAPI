@@ -6,6 +6,4 @@ COPY . .
 
 RUN npm install
 
-RUN mkdir -p /camerapi/temp
-
 CMD ["npm", "run", "dev"]
