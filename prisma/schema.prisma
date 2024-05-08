@@ -56,7 +56,7 @@ model Video {
   is_temporal     Boolean
   is_in_node      Boolean
   camera          Camera  @relation(fields: [cameraId], references: [id])
-  cameraId        Int     @unique
+  cameraId        Int
   node            Node    @relation(fields: [nodeId], references: [id])
   nodeId          Int
 }
