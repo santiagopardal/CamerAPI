@@ -6,7 +6,11 @@ const { deleteVideo, registerNewVideo } = require('../controllers/TemporalVideoC
 router.post('/:date/', tryCatch(
     async (request, response) => {
         const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
-        const video = await registerNewVideo(request.headers.node_id, request.camera, videoData)
+        const video = await registerNewVideo(
+            parseInt(request.headers.node_id, 10),
+            parseInt(request.camera, 10),
+            videoData
+        )
         response.status(201).json(video)
     })
 )
