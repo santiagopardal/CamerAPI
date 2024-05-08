@@ -28,7 +28,7 @@ model Camera {
   model           String
   ip              String
   streaming_port  Int
-  http_port       Int
+  http_port       Int?
   user            String
   password        String
   width           Int
