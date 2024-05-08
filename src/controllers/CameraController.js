@@ -1,5 +1,6 @@
 const Node = require('../models/Node')
-const {PrismaClient} = require("@prisma/client");
+const moment = require('moment/moment')
+const {PrismaClient} = require("@prisma/client")
 const prisma = new PrismaClient()
 
 const createNew = async (data) => {
@@ -135,7 +136,7 @@ const updateConnectionStatus = async (cameraId, message, date) => {
     const status = {
         cameraId: parseInt(cameraId, 10),
         message: message,
-        date: date
+        date: moment(date)
     }
 
     if (!status.message || ! status.date) {
@@ -148,10 +149,11 @@ const updateConnectionStatus = async (cameraId, message, date) => {
 }
 
 const getSnapshot = async (cameraId) => {
+    cameraId = parseInt(cameraId, 10)
     const queryData = await prisma.camera.findFirst(
         {
             where: {
-                id: parseInt(cameraId, 10)
+                id: cameraId
             },
             select: { nodeId: true }
         }
@@ -159,8 +161,7 @@ const getSnapshot = async (cameraId) => {
 
     const node = new Node(queryData.nodeId)
     await node.load()
-
-    const url = await node.getSnapshotURL(this.id)
+    const url = await node.getSnapshotURL(cameraId)
     return await fetch(url)
 }
 
