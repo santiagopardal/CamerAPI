@@ -1,5 +1,5 @@
 const Video = require('../models/Video')
-const dao = require('../models/dao/video')
+const dao = require('../dao/VideoDAO')
 const Node = require('../models/Node')
 
 const getVideo = async (id) => {

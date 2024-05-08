@@ -1,4 +1,4 @@
-const dao = require('../models/dao/node_dao')
+const dao = require('../dao/NodeDAO')
 const Node = require('../models/Node')
 
 const createNode = async (nodeData) => {

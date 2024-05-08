@@ -1,4 +1,4 @@
-const dao = require('../models/dao/video')
+const dao = require('../dao/VideoDAO')
 const fs = require('fs')
 
 class Video {

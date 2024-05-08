@@ -1,14 +1,9 @@
 const Node = require('../models/Node')
-const moment = require('moment/moment')
-const {PrismaClient} = require("@prisma/client")
-const prisma = new PrismaClient()
+const CameraDAO = require('../dao/CameraDAO')
+const ConnectionDAO = require('../dao/ConnectionDAO')
 
 const createNew = async (data) => {
-    const camera = await prisma.camera.create(
-        {
-            data: { ...data }
-        }
-    )
+    const camera = await CameraDAO.createCamera(data)
     try {
         const node = new Node(camera.nodeId)
         await node.load()
@@ -20,32 +15,17 @@ const createNew = async (data) => {
 }
 
 const edit = async (cameraId, newData) => {
-    const oldConfigurations = prisma.cameraConfigurations.findFirst(
-        {
-            where: { cameraId: parseInt(cameraId) },
-            select: { sensitivity: true }
-        }
-    )
+    const oldConfigurations = await CameraDAO.getConfigurations(cameraId)
     const newConfigurations = newData.configurations
 
     delete newData.configurations
 
-    const camera = await prisma.camera.update(
-        {
-            where: { id: parseInt(cameraId) },
-            data: newData
-        }
-    )
+    const camera = await CameraDAO.updateCamera(cameraId, newData)
 
     if (newConfigurations != null && oldConfigurations.sensitivity !== newConfigurations.sensitivity) {
         const promises = []
         promises.push(
-            prisma.cameraConfigurations.update(
-                {
-                    where: { cameraId: parseInt(cameraId) },
-                    data: newConfigurations
-                }
-            )
+            CameraDAO.updateConfigurations(cameraId, newConfigurations)
         )
         const node = new Node(camera.nodeId)
         await node.load()
@@ -59,16 +39,7 @@ const edit = async (cameraId, newData) => {
 }
 
 const deleteCamera = async (cameraId) => {
-    await prisma.cameraConfigurations.deleteMany(
-        {
-            where: { cameraId: parseInt(cameraId, 10) }
-        }
-    )
-    const camera = await prisma.camera.delete(
-        {
-            where: {id: parseInt(cameraId, 10)}
-        }
-    )
+    const camera = await CameraDAO.deleteCamera(cameraId)
     const node = new Node(camera.nodeId)
     await node.load()
     try {
@@ -79,45 +50,22 @@ const deleteCamera = async (cameraId) => {
 }
 
 const getCamera = async (cameraId) => {
-    return prisma.camera.findFirst(
-        {
-            where: { id: parseInt(cameraId, 10) },
-            include: { node: true, configurations: true }
-        }
-    )
+    return CameraDAO.getCamera(cameraId)
 }
 
 const getAll = async () => {
-    return prisma.camera.findMany(
-        {
-            include: {
-                node: true,
-                configurations: true,
-            }
-        }
-    )
+    return CameraDAO.getAllCameras()
 }
 
 const isOnline = async (cameraId) => {
-    const lastStatus = await prisma.connection.findFirst(
-        {
-            where: { cameraId: parseInt(cameraId, 10) },
-            orderBy: { date: "desc" }
-        }
-    )
-
+    const lastStatus = await ConnectionDAO.getLastConnection(cameraId)
     return lastStatus != null && lastStatus.message === "Connected"
 }
 
 const switchRecording = async (cameraId, newStatus) => {
     const promises = [
-        getCamera(cameraId),
-        prisma.cameraConfigurations.update(
-            {
-                where: {cameraId: parseInt(cameraId, 10)},
-                data: { recording: newStatus }
-            }
-        )
+        CameraDAO.getCamera(cameraId),
+        CameraDAO.updateConfigurations(cameraId, { recording: newStatus })
     ]
     const [camera, _] = Promise.all(promises)
 
@@ -132,34 +80,18 @@ const switchRecording = async (cameraId, newStatus) => {
 }
 
 const updateConnectionStatus = async (cameraId, message, date) => {
-    await getCamera(cameraId)
-    const status = {
-        cameraId: parseInt(cameraId, 10),
-        message: message,
-        date: moment(date)
-    }
-
     if (!status.message || ! status.date) {
         const error = Error('Connection message or date missing.')
         error.status = 400
         throw error
     }
 
-    await prisma.connection.create({ data: status })
+    await ConnectionDAO.createConnection(cameraId, message, date)
 }
 
 const getSnapshot = async (cameraId) => {
-    cameraId = parseInt(cameraId, 10)
-    const queryData = await prisma.camera.findFirst(
-        {
-            where: {
-                id: cameraId
-            },
-            select: { nodeId: true }
-        }
-    )
-
-    const node = new Node(queryData.nodeId)
+    const camera = await CameraDAO.getCamera(cameraId)
+    const node = new Node(camera.nodeId)
     await node.load()
     const url = await node.getSnapshotURL(cameraId)
     return await fetch(url)

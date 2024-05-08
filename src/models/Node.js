@@ -1,4 +1,4 @@
-const NodeDao = require('./dao/node_dao')
+const NodeDao = require('../dao/NodeDAO')
 const net = require('net')
 const NODE_PROTO_PATH = `${__dirname}/CamerAIProtos/Node.proto`
 const grpc = require('@grpc/grpc-js')
@@ -15,7 +15,7 @@ const packageDefinition = protoLoader.loadSync(
 )
 const GRPCNode = grpc.loadPackageDefinition(packageDefinition).node.Node
 
-const {PrismaClient} = require("@prisma/client")
+const { PrismaClient } = require("@prisma/client")
 const prisma = new PrismaClient()
 
 class Node {

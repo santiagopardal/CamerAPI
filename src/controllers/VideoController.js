@@ -1,4 +1,4 @@
-const dao = require('../models/dao/video')
+const dao = require('../dao/VideoDAO')
 const {statSync} = require('fs')
 const moment = require('moment/moment')
 const Video = require('../models/Video')
