@@ -93,8 +93,7 @@ const getSnapshot = async (cameraId) => {
     const camera = await CameraDAO.getCamera(cameraId)
     const node = new Node(camera.nodeId)
     await node.load()
-    const url = await node.getSnapshotURL(cameraId)
-    return await fetch(url)
+    return await node.getSnapshot(cameraId)
 }
 
 module.exports = {

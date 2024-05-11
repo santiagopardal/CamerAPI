@@ -72,6 +72,21 @@ class Node {
         return new Promise(fetchUrl)
     }
 
+    async getSnapshot(cameraId) {
+        const client = this.getGRCPClient()
+        const requestData = { camera_id: cameraId }
+        const fetchUrl = (resolve, reject) => {
+            client.get_snapshot(
+                requestData,
+                (error, response) => {
+                    if (error) reject(error)
+                    else resolve(response.value)
+                }
+            )
+        }
+        return new Promise(fetchUrl)
+    }
+
     async updateSensitivity(cameraId, sensitivity) {
         const client = this.getGRCPClient()
         const requestSensitivityUpdate = (resolve, reject) => {
