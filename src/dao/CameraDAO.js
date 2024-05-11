@@ -59,12 +59,22 @@ const updateCamera = async (cameraId, newData) => {
 
 
 const updateConfigurations = async (cameraId, newConfigurations) => {
-    prisma.cameraConfigurations.update(
-        {
-            where: { cameraId: parseInt(cameraId, 10) },
-            data: newConfigurations
-        }
-    )
+    let dataToUpdate = {}
+
+    if (newConfigurations["recording"] != null)
+        dataToUpdate["recording"] = newConfigurations["recording"]
+
+    if (newConfigurations["sensitivity"] != null)
+        dataToUpdate["sensitivity"] = newConfigurations["sensitivity"]
+
+    if (newConfigurations) {
+        await prisma.cameraConfigurations.update(
+            {
+                where: { cameraId: parseInt(cameraId, 10) },
+                data: dataToUpdate
+            }
+        )
+    }
 }
 
 
