@@ -80,7 +80,7 @@ const switchRecording = async (cameraId, newStatus) => {
 }
 
 const updateConnectionStatus = async (cameraId, message, date) => {
-    if (!status.message || ! status.date) {
+    if (!message || !date) {
         const error = Error('Connection message or date missing.')
         error.status = 400
         throw error
