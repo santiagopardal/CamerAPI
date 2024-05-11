@@ -57,11 +57,8 @@ router.get('/:id', tryCatch(
 router.get('/snapshot/:id', async (request, response, next) => {
     try {
         const snapshot = await getSnapshot(request.params.id)
-        const responseBlob = await snapshot.blob()
-        const arrayBuffer = await responseBlob.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        response.type(responseBlob.type)
-        response.send(buffer)
+        response.type("image/jpeg")
+        response.send(snapshot)
     } catch (err) {
         const error = { message: `Could not connect to camera: ${err}`, status: 500 }
         if (err.cause && err.cause.code === 'EHOSTUNREACH') {
