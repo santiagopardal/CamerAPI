@@ -67,7 +67,7 @@ const switchRecording = async (cameraId, newStatus) => {
         CameraDAO.getCamera(cameraId),
         CameraDAO.updateConfigurations(cameraId, { recording: newStatus })
     ]
-    const [camera, _] = Promise.all(promises)
+    const [camera, _] = await Promise.all(promises)
 
     const node = new Node(camera.nodeId)
     await node.load()
