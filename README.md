@@ -13,3 +13,4 @@ Although the project has grown a lot, there are still many things to improve, so
 - [ ] Create documentation for the API using Swagger.
 - [ ] Integrate with AWS S3 and other storing services.
 - [ ] Enable livestreaming for all the cameras, serving as a proxy to decouple the logic of the cameras from other integrations.
+- [ ] Validate request params, query params and body.
