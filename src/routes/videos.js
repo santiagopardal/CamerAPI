@@ -18,7 +18,8 @@ router.get('/from/:startingDate/to/:endingDate', tryCatch(
 
 router.post('/:date/', tryCatch(
     async (request, response, next) => {
-        const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
+        const date = new Date(request.body.dateTimestamp * 1000)
+        const videoData = { path: request.body.path, date: date }
         const video = await registerVideo(request.camera, request.headers.node_id, videoData)
         response.status(201).json(video)
     })

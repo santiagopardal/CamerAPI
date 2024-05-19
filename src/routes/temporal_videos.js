@@ -1,11 +1,11 @@
 const router = require('express').Router()
 const tryCatch = require('../controllers/tryCatch')
-const { parseRequestDate } = require('../utils/DateUtils')
 const { deleteVideo, registerNewVideo } = require('../controllers/TemporalVideoController')
 
-router.post('/:date/', tryCatch(
+router.post('/', tryCatch(
     async (request, response) => {
-        const videoData = { path: request.body.path, date: parseRequestDate(request.params.date) }
+        const date = new Date(request.body.dateTimestamp * 1000)
+        const videoData = { path: request.body.path, date: date }
         const video = await registerNewVideo(
             parseInt(request.headers.node_id, 10),
             parseInt(request.camera, 10),
