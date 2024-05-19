@@ -42,17 +42,10 @@ model Camera {
   framerate       Int
   node            Node    @relation(fields: [nodeId], references: [id])
   nodeId          Int
-  configurations  CameraConfigurations?
-  videos          Video[]
-  connections     Connection[]
-}
-
-model CameraConfigurations {
-  id              Int     @id @default(autoincrement())
   recording       Boolean
   sensitivity     Float
-  camera          Camera  @relation(fields: [cameraId], references: [id])
-  cameraId        Int     @unique
+  videos          Video[]
+  connections     Connection[]
 }
 
 model Video {

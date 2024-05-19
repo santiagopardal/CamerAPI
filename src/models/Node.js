@@ -53,7 +53,7 @@ class Node {
         return prisma.camera.findMany(
             {
                 where: { nodeId: this.id },
-                include: { node: true, configurations: true }
+                include: { node: true }
             }
         )
     }

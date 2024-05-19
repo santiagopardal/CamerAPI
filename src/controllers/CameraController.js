@@ -15,24 +15,15 @@ const createNew = async (data) => {
 }
 
 const edit = async (cameraId, newData) => {
-    const oldConfigurations = await CameraDAO.getConfigurations(cameraId)
-    const newConfigurations = newData.configurations
-
-    delete newData.configurations
+    const oldCamera = await CameraDAO.getCamera(cameraId)
 
     const camera = await CameraDAO.updateCamera(cameraId, newData)
 
-    if (newConfigurations != null && oldConfigurations.sensitivity !== newConfigurations.sensitivity) {
+    if (newData.sensitivity != null && oldCamera.sensitivity !== newData.sensitivity) {
         const promises = []
-        promises.push(
-            CameraDAO.updateConfigurations(cameraId, newConfigurations)
-        )
         const node = new Node(camera.nodeId)
         await node.load()
-        promises.push(
-            node.updateSensitivity(camera.id, newConfigurations.sensitivity)
-        )
-        await Promise.all(promises)
+        await node.updateSensitivity(camera.id, newData.sensitivity)
     }
 
     return camera
@@ -65,7 +56,7 @@ const isOnline = async (cameraId) => {
 const switchRecording = async (cameraId, newStatus) => {
     const promises = [
         CameraDAO.getCamera(cameraId),
-        CameraDAO.updateConfigurations(cameraId, { recording: newStatus })
+        CameraDAO.updateCamera(cameraId, { recording: newStatus })
     ]
     const [camera, _] = await Promise.all(promises)
 
