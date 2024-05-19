@@ -20,12 +20,11 @@ class Video {
             throw error
         }
 
-        const { path, date, camera, node, is_in_node } = video[0]
+        const { path, date, camera, node } = video[0]
         this.path = path
         this.date = date
         this.camera = camera
         this.node = node
-        this.isInNode = is_in_node
     }
 
     getSize() {

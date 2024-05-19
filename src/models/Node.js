@@ -15,7 +15,7 @@ const packageDefinition = protoLoader.loadSync(
 )
 const GRPCNode = grpc.loadPackageDefinition(packageDefinition).node.Node
 
-const { PrismaClient } = require("@prisma/client")
+const { PrismaClient, NodeType} = require("@prisma/client")
 const prisma = new PrismaClient()
 
 class Node {
@@ -24,10 +24,11 @@ class Node {
         this.id = parseInt(id, 10)
     }
 
-    setValues({ ip, port, last_request }) {
+    setValues({ ip, port, last_request, type }) {
         this.ip = ip
         this.port = port
         this.lastRequest = last_request
+        this.type = type
     }
 
     async load() {
@@ -182,7 +183,7 @@ class Node {
     }
 
     toJSON() {
-        const result = { ip: this.ip, port: this.port, last_request: this.lastRequest }
+        const result = { ip: this.ip, port: this.port, last_request: this.lastRequest, type: this.type }
         if (this.id) {
             result.id = this.id
         }

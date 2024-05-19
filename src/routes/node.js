@@ -10,6 +10,7 @@ router.post('/', tryCatch(
             const nodeData = {
                 ip: request.headers['x-forwarded-for'] || request.socket.remoteAddress,
                 port: parseInt(request.body.port, 10),
+                type: request.body.type
             }
             if (!await nodeExists(nodeData)) {
                 node = await createNode(nodeData)

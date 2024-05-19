@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient, NodeType} = require('@prisma/client')
 const prisma = new PrismaClient()
 
 function getNodes() {
