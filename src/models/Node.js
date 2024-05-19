@@ -145,12 +145,12 @@ class Node {
     }
 
     async addCamera(camera) {
-        const cameraData = camera.toJSON()
-        delete cameraData.node
+        delete camera.node
+        delete camera.nodeId
         const client = this.getGRCPClient()
         const addCameraCallback = (resolve, reject) => {
             client.add_camera(
-                cameraData,
+                camera,
                 (error, _) => {
                     if (error) reject(error)
                     else resolve()
