@@ -15,7 +15,7 @@ const getCamera = async (cameraId) => {
     return prisma.camera.findFirst(
         {
             where: { id: parseInt(cameraId, 10) },
-            include: { node: true }
+            include: { nodes: true }
         }
     )
 }

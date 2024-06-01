@@ -52,8 +52,8 @@ class Node {
     async getCameras() {
         return prisma.camera.findMany(
             {
-                where: { nodeId: this.id },
-                include: { node: true }
+                where: { nodes: { some: { id: this.id } } },
+                include: { nodes: true }
             }
         )
     }
