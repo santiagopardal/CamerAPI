@@ -1,12 +1,14 @@
 const Node = require('../models/Node')
 const CameraDAO = require('../dao/CameraDAO')
 const ConnectionDAO = require('../dao/ConnectionDAO')
+const {NodeType} = require("@prisma/client");
 
 const createNew = async (data) => {
     const camera = await CameraDAO.createCamera(data)
     try {
-        const node = new Node(camera.nodeId)
-        await node.load()
+        const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])
+        const node = new Node(nodeData.id)
+        node.setValues(nodeData)
         await node.addCamera(camera)
     } catch (err) {
         console.log("Couldn't connect to node:", err)
@@ -20,9 +22,9 @@ const edit = async (cameraId, newData) => {
     const camera = await CameraDAO.updateCamera(cameraId, newData)
 
     if (newData.sensitivity != null && oldCamera.sensitivity !== newData.sensitivity) {
-        const promises = []
-        const node = new Node(camera.nodeId)
-        await node.load()
+        const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])
+        const node = new Node(nodeData.id)
+        node.setValues(nodeData)
         await node.updateSensitivity(camera.id, newData.sensitivity)
     }
 
@@ -31,8 +33,9 @@ const edit = async (cameraId, newData) => {
 
 const deleteCamera = async (cameraId) => {
     const camera = await CameraDAO.deleteCamera(cameraId)
-    const node = new Node(camera.nodeId)
-    await node.load()
+    const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])
+    const node = new Node(nodeData.id)
+    node.setValues(nodeData)
     try {
         await node.removeCamera(parseInt(cameraId, 10))
     } catch (err) {
@@ -60,8 +63,9 @@ const switchRecording = async (cameraId, newStatus) => {
     ]
     const [camera, _] = await Promise.all(promises)
 
-    const node = new Node(camera.nodeId)
-    await node.load()
+    const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])
+    const node = new Node(nodeData.id)
+    node.setValues(nodeData)
 
     if (!newStatus) {
         await node.stopRecording(parseInt(cameraId, 10))
@@ -82,8 +86,9 @@ const updateConnectionStatus = async (cameraId, message, date) => {
 
 const getSnapshot = async (cameraId) => {
     const camera = await CameraDAO.getCamera(cameraId)
-    const node = new Node(camera.nodeId)
-    await node.load()
+    const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])
+    const node = new Node(nodeData.id)
+    node.setValues(nodeData)
     return await node.getSnapshot(cameraId)
 }
 

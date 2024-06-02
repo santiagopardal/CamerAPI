@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 const getAllCameras = async () => {
     return prisma.camera.findMany(
         {
-            include: { node: true }
+            include: { nodes: true }
         }
     )
 }
