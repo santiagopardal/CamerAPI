@@ -26,7 +26,6 @@ const createCamera = async (data) => {
         node => ({ id: node.id })
     )
     delete data.nodes
-    console.log(data)
     return prisma.camera.create(
         {
             data: {
