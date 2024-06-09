@@ -42,7 +42,8 @@ const updateCamera = async (cameraId, newData) => {
                 nodes: {
                     set: newNodes
                 }
-            }
+            },
+            include: { nodes: true }
         }
     )
 }

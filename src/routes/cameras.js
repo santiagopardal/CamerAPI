@@ -35,7 +35,8 @@ router.post('/:id/connection_status/', tryCatch(
 
 router.patch('/:id', tryCatch(
     async (request, response) => {
-        const newCamera = await edit(request.params.id, request.body)
+        const cameraId = parseInt(request.params.id)
+        const newCamera = await edit(cameraId, request.body)
         response.status(200).json(newCamera)
     })
 )

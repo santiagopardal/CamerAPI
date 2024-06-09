@@ -21,12 +21,47 @@ const edit = async (cameraId, newData) => {
 
     const camera = await CameraDAO.updateCamera(cameraId, newData)
 
-    if (newData.sensitivity != null && oldCamera.sensitivity !== newData.sensitivity) {
-        const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])
-        const node = new Node(nodeData.id)
-        node.setValues(nodeData)
-        await node.updateSensitivity(camera.id, newData.sensitivity)
+    const nodePool = new Map()
+    let promises = []
+
+    for (let nodeInfo in oldCamera.nodes) {
+        if (!camera.nodes.includes(nodeInfo.id)) {
+            const node = new Node(nodeInfo.id)
+            node.setValues(nodeInfo)
+            promises.push(node.removeCamera(cameraId))
+            nodePool.set(node.id, node)
+        }
     }
+
+    for (let nodeInfo in camera.nodes) {
+        if (!oldCamera.nodes.includes(nodeInfo.id)) {
+            const node = new Node(nodeInfo.id)
+            node.setValues(nodeInfo)
+            promises.push(node.addCamera(camera))
+            nodePool.set(node.id, node)
+        }
+    }
+
+    await Promise.allSettled(promises)
+    promises = []
+
+    if (newData.sensitivity != null && oldCamera.sensitivity !== newData.sensitivity) {
+        camera.nodes.filter(node => node.type === NodeType["OBSERVER"]).forEach(
+            (nodeInfo) => {
+                let node;
+                if (nodePool.has(nodeInfo.id)) {
+                    node = nodePool.get(nodeInfo.id)
+                } else {
+                    node = new Node(nodeInfo.id)
+                    node.setValues(nodeInfo)
+                }
+
+                promises.push(node.updateSensitivity(camera.id, newData.sensitivity))
+            }
+        )
+    }
+
+    await Promise.allSettled(promises)
 
     return camera
 }
@@ -57,21 +92,29 @@ const isOnline = async (cameraId) => {
 }
 
 const switchRecording = async (cameraId, newStatus) => {
-    const promises = [
-        CameraDAO.getCamera(cameraId),
-        CameraDAO.updateCamera(cameraId, { recording: newStatus })
-    ]
-    const [camera, _] = await Promise.all(promises)
+    const camera = await CameraDAO.getCamera(cameraId)
+    camera.recording = newStatus
+    await CameraDAO.updateCamera(cameraId, camera)
 
     const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])
     const node = new Node(nodeData.id)
     node.setValues(nodeData)
 
-    if (!newStatus) {
-        await node.stopRecording(parseInt(cameraId, 10))
-    } else {
-        await node.startRecording(parseInt(cameraId, 10))
+    const promises = []
+
+    for (let nodeInfo in camera.nodes) {
+        const node = new Node(nodeInfo.id)
+        node.setValues(nodeInfo)
+
+        if (!newStatus) {
+            promises.push(node.stopRecording(parseInt(cameraId, 10)))
+        } else {
+            promises.push(node.startRecording(parseInt(cameraId, 10)))
+        }
+        promises.push(node.addCamera(camera))
     }
+
+    await Promise.allSettled(promises)
 }
 
 const updateConnectionStatus = async (cameraId, message, date) => {
