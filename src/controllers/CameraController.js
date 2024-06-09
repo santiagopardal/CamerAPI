@@ -4,6 +4,7 @@ const ConnectionDAO = require('../dao/ConnectionDAO')
 const {NodeType} = require("@prisma/client");
 
 const createNew = async (data) => {
+    console.log("DAta on controller:", data)
     const camera = await CameraDAO.createCamera(data)
     try {
         const nodeData = camera.nodes.find(node => node.type === NodeType["OBSERVER"])

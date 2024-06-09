@@ -22,7 +22,22 @@ const getCamera = async (cameraId) => {
 
 
 const createCamera = async (data) => {
-    return prisma.camera.create({ data: data })
+    const nodes = data.nodes.map(
+        node => ({ id: node.id })
+    )
+    delete data.nodes
+    console.log(data)
+    return prisma.camera.create(
+        {
+            data: {
+                ...data,
+                nodes: {
+                    connect: nodes
+                }
+            },
+            include: { nodes: true }
+        }
+    )
 }
 
 
