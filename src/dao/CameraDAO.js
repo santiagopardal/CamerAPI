@@ -30,17 +30,19 @@ const updateCamera = async (cameraId, newData) => {
     let dataToUpdate = newData
 
     delete dataToUpdate.id
-
-    if (newData.node?.id) {
-        dataToUpdate["nodeId"] = newData.node?.id
-    }
-
-    delete dataToUpdate.node
+    const newNodes = newData.nodes.map(
+        node => ({ id: node.id })
+    )
 
     return prisma.camera.update(
         {
             where: { id: parseInt(cameraId) },
-            data: dataToUpdate
+            data: {
+                ...dataToUpdate,
+                nodes: {
+                    set: newNodes
+                }
+            }
         }
     )
 }
