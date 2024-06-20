@@ -1,7 +1,5 @@
-const dao = require('../models/dao/node_dao')
+const dao = require('../dao/NodeDAO')
 const Node = require('../models/Node')
-
-const node_dao = require('../models/dao/node_dao')
 
 const createNode = async (nodeData) => {
     nodeData.last_request = new Date()
@@ -13,6 +11,10 @@ const createNode = async (nodeData) => {
 const nodeExists = async (nodeData) => {
     const node = await dao.getNode(nodeData)
     return node != null
+}
+
+const update = async (node) => {
+    await node.update()
 }
 
 const deleteNode = async (nodeId) => {
@@ -30,15 +32,6 @@ const getAll = async () => {
     return await dao.getNodes()
 }
 
-const updateNodeLastRequest = async (nodeId, date) => {
-    const node = new Node(nodeId)
-    await node.load()
-    await node_dao.update({
-        id: nodeId,
-        last_request: date
-    })
-}
-
 const getNodeCameras = async (nodeId) => {
     const node = new Node(nodeId)
     await node.load()
@@ -49,8 +42,8 @@ module.exports = {
     createNode,
     getNode,
     getAll,
-    updateNodeLastRequest,
     getNodeCameras,
     deleteNode,
-    nodeExists
+    nodeExists,
+    update
 }

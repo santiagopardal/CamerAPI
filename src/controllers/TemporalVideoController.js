@@ -1,6 +1,5 @@
 const Video = require('../models/Video')
-const videoHandler = require('../video_handler')
-const dao = require('../models/dao/video')
+const dao = require('../dao/VideoDAO')
 const Node = require('../models/Node')
 
 const getVideo = async (id) => {
@@ -11,36 +10,14 @@ const getVideo = async (id) => {
 
 const deleteVideo = async (videoId) => {
     const video = await getVideo(videoId)
+    const promises = []
 
     if (!video.isInNode) {
-        await video.delete(video.path)
+        promises.push(video.delete(video.path))
     }
 
-    await dao.deleteVideo(videoId)
-}
-
-const getAllVideosInCamera = async (cameraId) => {
-    return await dao.getAllTemporalVideos(cameraId)
-}
-
-const getAllVideosInDateForCamera = async (camera, date) => {
-    return await dao.getAllTemporalVideosInDate(camera, date)
-}
-
-const addNewPart = async (camera, date, partData) => {
-    let  { part, parts, chunk, filename, old_path, upload_complete } = partData
-    part = parseInt(part)
-    parts = parseInt(parts)
-    const uploadIsComplete = upload_complete === 'True'
-
-    if (uploadIsComplete) {
-        const newPath = await videoHandler.createVideosFromParts(parts, filename, camera, date)
-        await dao.markVideoAsLocallyStored(old_path, newPath)
-    } else {
-        await videoHandler.saveFilePart(part, chunk, filename, camera, date)
-    }
-
-    return upload_complete
+    promises.push(dao.deleteVideo(videoId))
+    await Promise.all(promises)
 }
 
 const registerNewVideo = async (nodeId, cameraId, videoData) => {
@@ -50,9 +27,9 @@ const registerNewVideo = async (nodeId, cameraId, videoData) => {
     const video = {
         path: path,
         date: date,
-        camera: cameraId,
-        node: nodeId,
-        is_in_node: true
+        cameraId: cameraId,
+        nodeId: nodeId,
+        is_temporal: true
     }
     await dao.logVideo(video)
     return video
@@ -61,8 +38,5 @@ const registerNewVideo = async (nodeId, cameraId, videoData) => {
 module.exports = {
     getVideo,
     deleteVideo,
-    getAllVideosInCamera,
-    getAllVideosInDateForCamera,
-    addNewPart,
     registerNewVideo
 }

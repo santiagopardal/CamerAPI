@@ -1,4 +1,4 @@
-const dao = require('../models/dao/video')
+const dao = require('../dao/VideoDAO')
 const {statSync} = require('fs')
 const moment = require('moment/moment')
 const Video = require('../models/Video')
@@ -21,10 +21,9 @@ const registerVideo = async (camera, node, videoData) => {
     const video = {
         path: path,
         date: date,
-        camera: camera,
+        cameraId: camera,
         is_temporal: false,
-        node: node,
-        is_in_node: true
+        nodeId: node
     }
     await dao.logVideo(video)
     return video

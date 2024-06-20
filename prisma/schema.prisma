@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum NodeType {
+  OBSERVER
+  PROCESSOR
+}
+
+model Node {
+  id              Int     @id @default(autoincrement())
+  ip              String
+  port            Int
+  last_request    DateTime @default(now())
+  type            NodeType
+  cameras         Camera[]
+  videos          Video[]
+}
+
+model Camera {
+  id              Int     @id @default(autoincrement())
+  name            String
+  model           String
+  ip              String
+  streaming_port  Int
+  http_port       Int?
+  user            String
+  password        String
+  width           Int
+  height          Int
+  framerate       Int
+  nodes           Node[]
+  recording       Boolean
+  sensitivity     Float
+  videos          Video[]
+  connections     Connection[]
+}
+
+model Video {
+  id              Int     @id @default(autoincrement())
+  path            String
+  date            DateTime
+  is_temporal     Boolean
+  camera          Camera  @relation(fields: [cameraId], references: [id])
+  cameraId        Int
+  node            Node    @relation(fields: [nodeId], references: [id])
+  nodeId          Int
+}
+
+model Connection {
+  id              Int     @id @default(autoincrement())
+  camera          Camera  @relation(fields: [cameraId], references: [id])
+  cameraId        Int
+  message         String
+  date            DateTime @default(now())
+}

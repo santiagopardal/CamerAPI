@@ -9,11 +9,16 @@ router.post('/', tryCatch(
         if (!request.headers.node_id) {
             const nodeData = {
                 ip: request.headers['x-forwarded-for'] || request.socket.remoteAddress,
-                port: request.body.port,
+                port: parseInt(request.body.port, 10),
+                type: request.body.type
             }
             if (!await nodeExists(nodeData)) {
                 node = await createNode(nodeData)
                 statusCode = 201
+            } else {
+                const error = new Error('Node with that data already exists')
+                error.status = 400
+                throw error
             }
         } else {
             node = await getNode(parseInt(request.headers.node_id))
@@ -24,7 +29,7 @@ router.post('/', tryCatch(
 
 router.get('/:id', tryCatch(
     async (request, response) => {
-        const node = await getNode(request.params.id)
+        const node = await getNode(parseInt(request.params.id, 10))
         response.status(200).json(node.toJSON())
     })
 )
