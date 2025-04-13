@@ -23,14 +23,19 @@ class DAO[T: Base](ABC):
         return types.get_original_bases(self.__class__)[0].__args__[0]
 
     async def list(self, page_size: int, page_number: int) -> list[T]:
-        query = Select(
-            self.model_type
-        ).offset(
-            (page_number - 1) * page_size
-        ).order_by(
-            self.model_type.id.desc()
-        ).limit(
-            page_size
+        query = (
+            Select(
+                self.model_type
+            ).options(
+                selectinload("*")
+            )
+            .offset(
+                (page_number - 1) * page_size
+            ).order_by(
+                self.model_type.id.desc()
+            ).limit(
+                page_size
+            )
         )
 
         result = await self.session.execute(query)
