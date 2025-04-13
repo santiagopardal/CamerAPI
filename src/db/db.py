@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from functools import lru_cache
 from typing import AsyncContextManager
 
@@ -39,7 +39,9 @@ async def get_session():
             yield session
             await session.commit()
         except Exception as exception:
-            await session.rollback()
+            with suppress(Exception):
+                await session.rollback()
+
             raise exception
         finally:
             await session.close()
