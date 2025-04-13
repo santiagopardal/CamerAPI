@@ -21,7 +21,7 @@ class DAO[T: Base](ABC):
     def model_type(self) -> T:
         return types.get_original_bases(self.__class__)[0].__args__[0]
 
-    async def get(self, page_size: int, page_number: int) -> list[T]:
+    async def list(self, page_size: int, page_number: int) -> list[T]:
         query = Select(
             self.model_type
         ).offset(

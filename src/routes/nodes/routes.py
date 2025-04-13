@@ -19,7 +19,7 @@ async def get_nodes(
     return Page(
         items=[
             NodeSchema.from_model(model)
-            for model in await node_dao.get(page_size=page_size, page_number=page_number)
+            for model in await node_dao.list(page_size=page_size, page_number=page_number)
         ],
         page=page_number,
         size=page_size,
