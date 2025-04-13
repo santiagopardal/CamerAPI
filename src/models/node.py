@@ -23,7 +23,7 @@ class NodeType(StrEnum):
 class Node(Base):
     ip: Mapped[str] = orm.mapped_column(String, nullable=False)
     port: Mapped[int] = orm.mapped_column(Integer, nullable=False)
-    last_request: Mapped[datetime | None] = orm.mapped_column(DateTime(timezone=True), nullable=False)
+    last_request: Mapped[datetime | None] = orm.mapped_column(DateTime(timezone=True), nullable=True)
     type: Mapped[NodeType] = orm.mapped_column(ENUM(NodeType, create_type=True), nullable=False)
 
     videos: Mapped[list["Video"]] = orm.relationship("Video", back_populates="node")

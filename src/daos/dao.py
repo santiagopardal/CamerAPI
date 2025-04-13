@@ -6,6 +6,7 @@ from typing import Annotated, TypeVar
 from fastapi import Depends
 from sqlalchemy import func, Select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.db import db
 from src.models import Base
@@ -37,7 +38,11 @@ class DAO[T: Base](ABC):
         return list(result.scalars().all())
 
     async def find(self, object_id: int) -> T | None:
-        return await self.session.get(self.model_type, object_id)
+        return await self.session.get(
+            self.model_type,
+            object_id,
+            options=[selectinload("*")],
+        )
 
     async def count(self) -> int:
         query = func.count(self.model_type.id)
