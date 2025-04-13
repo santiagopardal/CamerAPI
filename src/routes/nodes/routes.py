@@ -2,9 +2,11 @@ import math
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from starlette import status
 
 from src.daos.node_dao import NodeDAO
 from src.exceptions.not_found_error import NotFoundError
+from src.routes.nodes.requests import CreateNodeRequest
 from src.schemas.node import NodeSchema
 from src.schemas.page import Page
 
@@ -37,3 +39,8 @@ async def get_node(node_id: int, node_dao: Annotated[NodeDAO, Depends(NodeDAO)])
         )
 
     return NodeSchema.from_model(node)
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def create_node(node_info: CreateNodeRequest, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]) -> NodeSchema:
+    model = await node_dao.create(node_info)
+    return NodeSchema.from_model(model)

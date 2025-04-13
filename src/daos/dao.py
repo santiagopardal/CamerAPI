@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from typing import Annotated, TypeVar
 
 from fastapi import Depends
-from sqlalchemy import func, Select
+from pydantic import BaseModel
+from sqlalchemy import func, Select, orm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, class_mapper
 
 from src.db import db
 from src.models import Base
@@ -22,6 +23,22 @@ class DAO[T: Base](ABC):
     def model_type(self) -> type[T]:
         return types.get_original_bases(self.__class__)[0].__args__[0]
 
+    def attribute_names(self):
+        return [
+            prop.key
+            for prop in class_mapper(self.model_type).iterate_properties
+        ]
+
+    async def create(self, model_data: BaseModel) -> T:
+        model = self.model_type(**model_data.model_dump())
+
+        self.session.add(model)
+
+        await self.session.commit()
+        await self.session.refresh(model, self.attribute_names())
+
+        return model
+
     async def list(self, page_size: int, page_number: int) -> list[T]:
         query = (
             Select(
@@ -32,7 +49,7 @@ class DAO[T: Base](ABC):
             .offset(
                 (page_number - 1) * page_size
             ).order_by(
-                self.model_type.id.desc()
+                self.model_type.id.asc()
             ).limit(
                 page_size
             )
