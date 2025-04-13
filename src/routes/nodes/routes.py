@@ -47,7 +47,13 @@ async def create_node(node_info: CreateNodeRequest, node_dao: Annotated[NodeDAO,
 
 @router.put("/{node_id}")
 async def update_node(node_id: int, update: CreateNodeRequest, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]) -> NodeSchema:
-    await node_dao.update(node_id, update)
+    updated = await node_dao.update(node_id, update)
+
+    if not updated:
+        raise NotFoundError(
+            object_type="Node",
+            filter_params={"id": node_id},
+        )
 
     node = await node_dao.find(node_id)
 

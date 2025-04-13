@@ -50,7 +50,7 @@ class DAO[T: Base](ABC):
 
         return model
 
-    async def update(self, object_id: int, model_data: BaseModel) -> T:
+    async def update(self, object_id: int, model_data: BaseModel) -> bool:
         columns_names = self.columns_names()
 
         update_query = Update(
@@ -65,8 +65,10 @@ class DAO[T: Base](ABC):
             }
         )
 
-        await self.session.execute(update_query)
+        result = await self.session.execute(update_query)
         await self.session.commit()
+
+        return result.rowcount == 1
 
     async def delete(self, object_id: int) -> bool:
         query = Delete(self.model_type).where(self.model_type.id == object_id)
