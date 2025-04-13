@@ -5,7 +5,7 @@ from typing import Annotated, TypeVar
 
 from fastapi import Depends
 from pydantic import BaseModel
-from sqlalchemy import func, Select, orm
+from sqlalchemy import func, Select, orm, Update, Delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, class_mapper
 
@@ -23,18 +23,22 @@ class DAO[T: Base](ABC):
     def model_type(self) -> type[T]:
         return types.get_original_bases(self.__class__)[0].__args__[0]
 
-    def attribute_names(self) -> list[str]:
-        return [
-            prop.key
+    def model_properties(self) -> set:
+        return {
+            prop
             for prop in class_mapper(self.model_type).iterate_properties
-        ]
+            if prop.key not in {"id", "created_at", "updated_at"}
+        }
 
-    def column_names(self) -> list[str]:
-        return [
+    def attribute_names(self) -> set[str]:
+        return {prop.key for prop in self.model_properties()}
+
+    def columns_names(self) -> set[str]:
+        return {
             prop.key
-            for prop in class_mapper(self.model_type).iterate_properties
+            for prop in self.model_properties()
             if isinstance(prop, orm.ColumnProperty)
-        ]
+        }
 
     async def create(self, model_data: BaseModel) -> T:
         model = self.model_type(**model_data.model_dump())
@@ -45,6 +49,32 @@ class DAO[T: Base](ABC):
         await self.session.refresh(model, self.attribute_names())
 
         return model
+
+    async def update(self, object_id: int, model_data: BaseModel) -> T:
+        columns_names = self.columns_names()
+
+        update_query = Update(
+            self.model_type
+        ).where(
+            self.model_type.id == object_id
+        ).values(
+            **{
+                key: value
+                for key, value in model_data.model_dump().items()
+                if key in columns_names
+            }
+        )
+
+        await self.session.execute(update_query)
+        await self.session.commit()
+
+    async def delete(self, object_id: int) -> bool:
+        query = Delete(self.model_type).where(self.model_type.id == object_id)
+
+        result = await self.session.execute(query)
+        await self.session.commit()
+
+        return result.rowcount == 1
 
     async def list(self, page_size: int, page_number: int) -> list[T]:
         query = (

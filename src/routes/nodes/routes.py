@@ -44,3 +44,22 @@ async def get_node(node_id: int, node_dao: Annotated[NodeDAO, Depends(NodeDAO)])
 async def create_node(node_info: CreateNodeRequest, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]) -> NodeSchema:
     model = await node_dao.create(node_info)
     return NodeSchema.from_model(model)
+
+@router.put("/{node_id}")
+async def update_node(node_id: int, update: CreateNodeRequest, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]) -> NodeSchema:
+    await node_dao.update(node_id, update)
+
+    node = await node_dao.find(node_id)
+
+    return NodeSchema.from_model(node)
+
+
+@router.delete("/{node_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_node(node_id: int, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]):
+    deleted = await node_dao.delete(node_id)
+
+    if not deleted:
+        raise NotFoundError(
+            object_type="Node",
+            filter_params={"id": node_id},
+        )
