@@ -19,7 +19,7 @@ class DAO[T: Base](ABC):
     session: Annotated[AsyncSession, Depends(db.get_session)]
 
     @property
-    def model_type(self) -> T:
+    def model_type(self) -> type[T]:
         return types.get_original_bases(self.__class__)[0].__args__[0]
 
     async def list(self, page_size: int, page_number: int) -> list[T]:
