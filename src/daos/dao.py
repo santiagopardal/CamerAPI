@@ -23,10 +23,17 @@ class DAO[T: Base](ABC):
     def model_type(self) -> type[T]:
         return types.get_original_bases(self.__class__)[0].__args__[0]
 
-    def attribute_names(self):
+    def attribute_names(self) -> list[str]:
         return [
             prop.key
             for prop in class_mapper(self.model_type).iterate_properties
+        ]
+
+    def column_names(self) -> list[str]:
+        return [
+            prop.key
+            for prop in class_mapper(self.model_type).iterate_properties
+            if isinstance(prop, orm.ColumnProperty)
         ]
 
     async def create(self, model_data: BaseModel) -> T:
