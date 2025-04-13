@@ -1,11 +1,19 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Integer, orm, DateTime, String
+from sqlalchemy import Integer, orm, String
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped
 
+from src.models import camera_node_association
+
 from src.models.base import Base
+
+if TYPE_CHECKING:
+    # Avoid circular imports
+    from src.models.video import Video
+    from src.models import Node
 
 
 class RecordingStatus(StrEnum):
@@ -30,3 +38,6 @@ class Camera(Base):
 
     recording_status: Mapped[RecordingStatus] = orm.mapped_column(ENUM(RecordingStatus, create_type=True), nullable=False)
     sensitivity: Mapped[int] = orm.mapped_column(Integer, nullable=False)
+
+    videos: Mapped[list["Video"]] = orm.relationship("Video", back_populates="camera")
+    nodes: Mapped[list["Node"]] = orm.relationship(secondary=camera_node_association.table)
