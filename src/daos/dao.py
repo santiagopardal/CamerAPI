@@ -7,7 +7,7 @@ from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy import func, Select, orm, Update, Delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, class_mapper
+from sqlalchemy.orm import selectinload, class_mapper, MapperProperty
 
 from src.db import db
 from src.models import Base
@@ -23,7 +23,7 @@ class DAO[T: Base](ABC):
     def model_type(self) -> type[T]:
         return types.get_original_bases(self.__class__)[0].__args__[0]
 
-    def model_properties(self) -> set:
+    def model_properties(self) -> set[MapperProperty]:
         return {
             prop
             for prop in class_mapper(self.model_type).iterate_properties
