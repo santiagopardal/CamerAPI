@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from starlette import status
 
+from src.daos.dao import DAO
 from src.daos.node_dao import NodeDAO
 from src.exceptions.not_found_error import NotFoundError
 from src.routes.nodes.requests import CreateNodeRequest
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/nodes")
 
 @router.get("/")
 async def get_nodes(
-    node_dao: Annotated[NodeDAO, Depends(NodeDAO)],
+    node_dao: Annotated[DAO, Depends(NodeDAO)],
     page_number: int = Query(default=1, gt=0),
     page_size: int = Query(default=10, gt=0),
 ) -> Page[NodeSchema]:
@@ -29,7 +30,7 @@ async def get_nodes(
     )
 
 @router.get("/{node_id}")
-async def get_node(node_id: int, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]) -> NodeSchema:
+async def get_node(node_id: int, node_dao: Annotated[DAO, Depends(NodeDAO)]) -> NodeSchema:
     node = await node_dao.find(node_id)
 
     if node is None:
@@ -41,12 +42,12 @@ async def get_node(node_id: int, node_dao: Annotated[NodeDAO, Depends(NodeDAO)])
     return NodeSchema.from_model(node)
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_node(node_info: CreateNodeRequest, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]) -> NodeSchema:
+async def create_node(node_info: CreateNodeRequest, node_dao: Annotated[DAO, Depends(NodeDAO)]) -> NodeSchema:
     model = await node_dao.create(node_info)
     return NodeSchema.from_model(model)
 
 @router.put("/{node_id}")
-async def update_node(node_id: int, update: CreateNodeRequest, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]) -> NodeSchema:
+async def update_node(node_id: int, update: CreateNodeRequest, node_dao: Annotated[DAO, Depends(NodeDAO)]) -> NodeSchema:
     updated = await node_dao.update(node_id, update)
 
     if not updated:
@@ -61,7 +62,7 @@ async def update_node(node_id: int, update: CreateNodeRequest, node_dao: Annotat
 
 
 @router.delete("/{node_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_node(node_id: int, node_dao: Annotated[NodeDAO, Depends(NodeDAO)]):
+async def delete_node(node_id: int, node_dao: Annotated[DAO, Depends(NodeDAO)]):
     deleted = await node_dao.delete(node_id)
 
     if not deleted:

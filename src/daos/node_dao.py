@@ -1,6 +1,6 @@
-from src.daos.dao import DAO
+from src.daos.sqlalchemy_base_dao import SQLAlchemyBaseDAO
 from src.models import Node
 
 
-class NodeDAO(DAO[Node]):
+class NodeDAO(SQLAlchemyBaseDAO[Node]):
     pass

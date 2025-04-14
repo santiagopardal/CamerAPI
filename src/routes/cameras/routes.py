@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from starlette import status
 
 from src.daos.camera_dao import CameraDAO
+from src.daos.dao import DAO
 from src.exceptions.not_found_error import NotFoundError
 from src.routes.cameras.requests import CreateCameraRequest
 from src.schemas.camera import CameraSchema
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/cameras")
 
 @router.get("/")
 async def get_cameras(
-    camera_dao: Annotated[CameraDAO, Depends(CameraDAO)],
+    camera_dao: Annotated[DAO, Depends(CameraDAO)],
     page_number: int = Query(default=1, gt=0),
     page_size: int = Query(default=10, gt=0),
 ) -> Page[CameraSchema]:
@@ -29,7 +30,7 @@ async def get_cameras(
     )
 
 @router.get("/{camera_id}")
-async def get_camera(camera_id: int, camera_dao: Annotated[CameraDAO, Depends(CameraDAO)]) -> CameraSchema:
+async def get_camera(camera_id: int, camera_dao: Annotated[DAO, Depends(CameraDAO)]) -> CameraSchema:
     camera = await camera_dao.find(camera_id)
 
     if camera is None:
@@ -41,12 +42,12 @@ async def get_camera(camera_id: int, camera_dao: Annotated[CameraDAO, Depends(Ca
     return CameraSchema.from_model(camera)
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_camera(camera_info: CreateCameraRequest, camera_dao: Annotated[CameraDAO, Depends(CameraDAO)]) -> CameraSchema:
+async def create_camera(camera_info: CreateCameraRequest, camera_dao: Annotated[DAO, Depends(CameraDAO)]) -> CameraSchema:
     model = await camera_dao.create(camera_info)
     return CameraSchema.from_model(model)
 
 @router.put("/{camera_id}")
-async def update_camera(camera_id: int, update: CreateCameraRequest, camera_dao: Annotated[CameraDAO, Depends(CameraDAO)]) -> CameraSchema:
+async def update_camera(camera_id: int, update: CreateCameraRequest, camera_dao: Annotated[DAO, Depends(CameraDAO)]) -> CameraSchema:
     updated = await camera_dao.update(camera_id, update)
 
     if not updated:
@@ -61,7 +62,7 @@ async def update_camera(camera_id: int, update: CreateCameraRequest, camera_dao:
 
 
 @router.delete("/{camera_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_camera(camera_id: int, camera_dao: Annotated[CameraDAO, Depends(CameraDAO)]):
+async def delete_camera(camera_id: int, camera_dao: Annotated[DAO, Depends(CameraDAO)]):
     deleted = await camera_dao.delete(camera_id)
 
     if not deleted:
